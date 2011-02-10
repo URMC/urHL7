@@ -35,6 +35,7 @@ public interface HL7MessageListener {
     /**
      * This method is called whenever a message has been successfully parsed.
      * @param message the message received
+     * @return true if message is to be accepted, false if message is to be denied.
      */
-    public void messageReceived(HL7Structure message);
+    public boolean messageReceived(HL7Structure message);
 }

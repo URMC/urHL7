@@ -39,9 +39,10 @@ public class HL7MessageListenerListAdapter implements HL7MessageListener {
      * Called whenever a message is parsed completely. This method adds the HL7Structure to an internal list that can
      * be accessed when file parsing is complete, or periodically.
      * @param message the message recieved
+     * @return always returns true (as per general collection contract)
      */
-    public void messageReceived(HL7Structure message) {
-        list.add(message);
+    public boolean messageReceived(HL7Structure message) {
+        return list.add(message);
     }
 
     /**
