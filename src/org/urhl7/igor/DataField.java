@@ -29,7 +29,7 @@ package org.urhl7.igor;
  * provides a way to access any particular data object as a generic DataField.
  * @author dmorgan
  */
-public interface DataField {
+public interface DataField extends GenericStructure {
     /**
      * Retrieve the underlying data for this data object.
      * @return String representation of the data

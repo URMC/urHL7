@@ -30,7 +30,7 @@ import org.urhl7.utils.*;
  * HL7FieldSubcomponent is a data object that represents the discrete field subcomponent portions of an HL7 message.
  * @author dmorgan
  */
-public class HL7FieldSubcomponent implements GenericStructure, DataField, DelimitedStructure {
+public class HL7FieldSubcomponent implements DataField, DelimitedStructure {
     private char[] delims;
     private HL7FieldComponent parent;
     private String data;

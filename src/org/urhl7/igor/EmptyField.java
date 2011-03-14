@@ -37,10 +37,20 @@ public class EmptyField implements DataField {
      * Creates a new EmptyField that has no data, and no reference attachments.
      */
     public EmptyField() {}
+
     public String getData() {
         return data;
     }
+
     public void setData(String data) {
+        this.data = data;
+    }
+
+    public String marshal() {
+        return data;
+    }
+
+    public void unmarshal(String data) {
         this.data = data;
     }
 }

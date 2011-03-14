@@ -32,7 +32,7 @@ import java.util.List;
  * HL7FieldComponent is a data object that represents the discrete field component portions of an HL7 message.
  * @author dmorgan
  */
-public class HL7FieldComponent implements GenericStructure, DataField, DelimitedStructure {
+public class HL7FieldComponent implements DataField, DelimitedStructure {
     private String data;
     private char[] delims;
     private HL7Field parent;

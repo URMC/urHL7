@@ -33,7 +33,7 @@ import java.util.List;
  * 
  * @author dmorgan
  */
-public class HL7Field implements GenericStructure, DataField, DelimitedStructure {
+public class HL7Field implements DataField, DelimitedStructure {
 
     private ArrayList<HL7FieldComponent> components = new ArrayList<HL7FieldComponent>();
     private String data;
