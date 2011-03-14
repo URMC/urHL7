@@ -157,8 +157,7 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
                 case EXIST:
                     return helper().has(loc);
                 case EXIST_NON_EMPTY:
-                    DataField df = helper().get(loc);
-                    return helper().has(loc) && !df.getData().trim().equals("");
+                    return helper().has(loc) && !helper().get(loc).getData().trim().equals("");
                 case NUMERIC:
                     return helper().get(loc).getData().matches("((-|\\+)?[0-9]+(\\.[0-9]+)?)+");
                     
