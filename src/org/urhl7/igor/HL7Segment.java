@@ -61,6 +61,16 @@ public class HL7Segment implements GenericStructure, DelimitedStructure {
     }
 
     /**
+     * Compress the segment by removing fields that are empty at the end of the segment. Does not remove
+     * fields that have components.
+     */
+    public void compress() {
+        while(getRepeatingFields().get(getRepeatingFields().size()-1).marshal().equals("")) {
+            getRepeatingFields().remove(getRepeatingFields().size()-1);
+        }
+    }
+
+    /**
      * Makes a copy of this HL7Segment.
      * @return a copy of this HL7Segment
      */

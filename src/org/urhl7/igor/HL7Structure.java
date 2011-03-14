@@ -64,6 +64,16 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     }
 
     /**
+     * Compress the message by removing fields that are empty at the end of the segments. Does not remove
+     * fields that have components.
+     */
+    public void compress() {
+        for(HL7Segment seg : getSegments()) {
+            seg.compress();
+        }
+    }
+
+    /**
      * Makes an exact copy of this HL7Structure and returns it. Functionally equivalent as .copy(true)
      * @return a copy of this structure
      * @see #copy(boolean)
