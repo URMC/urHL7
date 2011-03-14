@@ -39,7 +39,17 @@ public class Igor {
      * @return a blank HL7Structure
      */
     public static HL7Structure structure() {
-        return structure(DEFAULT_DELIMS);
+        return structure(DEFAULT_DELIMS, 0);
+    }
+
+    /**
+     * Creates an empty HL7Structure using default delimiters. MSH|^~\& is defined, as well as the number of
+     * additional fields requested.
+     * @param additionalFields number of fields to add to the MSH beyond the segment name and delimiters.
+     * @return a blank HL7Structure
+     */
+    public static HL7Structure structure(int additionalFields) {
+        return structure(DEFAULT_DELIMS, additionalFields);
     }
 
     /**
@@ -48,9 +58,26 @@ public class Igor {
      * @return an empty HL7Structure
      */
     public static HL7Structure structure(char[] delims) {
+        return structure(delims, 0);
+    }
+
+    /**
+     * Creates an empty HL7Structure with  MSH[delims] defined, as well as the number of
+     * additional fields requested.
+     * @param delims the delimiters to use for the message.
+     * @param additionalFields number of fields to add to the MSH beyond the segment name and delimiters.
+     * @return an empty HL7Structure
+     */
+    public static HL7Structure structure(char[] delims, int additionalFields) {
         HL7Structure structure = new HL7Structure(delims);
         String data = "MSH" + new String(delims) + "\r";
         structure.unmarshal(data);
+        if (additionalFields > 0) {
+            HL7Segment seg = structure.helper().getSegment("MSH");
+            for(int i=0; i<additionalFields; i++) {
+                seg.addRepeatingField(Igor.quickField());
+            }
+        }
         return structure;
     }
 
