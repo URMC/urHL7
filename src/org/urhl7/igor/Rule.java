@@ -36,5 +36,10 @@ public enum Rule {
     /**
      * Rule test for existance as well as a value that is not null, or empty string
      */
-    EXIST_NON_EMPTY
+    EXIST_NON_EMPTY,
+    /**
+     * Rule test for if a value is numeric (digits, and at most one decimal place).
+     */
+    NUMERIC
+
 }
