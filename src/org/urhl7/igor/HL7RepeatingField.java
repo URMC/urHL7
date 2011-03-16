@@ -32,7 +32,7 @@ import org.urhl7.utils.StringHelper;
  * The HL7RepeatingField is a data object that represents the one to many relationship between segments and fields.
  * @author dmorgan
  */
-public class HL7RepeatingField implements DelimitedStructure {
+public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
     private ArrayList<HL7Field> fields = new ArrayList<HL7Field>();;
     //private String data;
     private char[] delims;
