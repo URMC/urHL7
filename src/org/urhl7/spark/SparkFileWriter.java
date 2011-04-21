@@ -37,7 +37,7 @@ public class SparkFileWriter {
     private String delimiter;
     private boolean appendToFile;
 
-    private FileWriter fw;
+    private FileWriter fw = null;
 
     /**
      * The default delimiter between messages. The default value is "\r\n"
@@ -49,9 +49,8 @@ public class SparkFileWriter {
      * Creates a SparkFileWriter, mapped to a specific File. Default delimiters are used, and the file will be APPENDED to if it
      * already exists
      * @param outputFile the file to write data to.
-     * @throws java.io.IOException
      */
-    public SparkFileWriter(File outputFile) throws IOException {
+    public SparkFileWriter(File outputFile) {
         this(outputFile, DELIMITER_DEFAULT, true);
     }
 
@@ -59,9 +58,8 @@ public class SparkFileWriter {
      * Creates a SparkFileWriter, mapped to a file, with a specified delimiter. The file will be APPENDED to if it already exists.
      * @param outputFile the file to write data to.
      * @param delimiter the delimiter that will be placed after every message.
-     * @throws java.io.IOException
      */
-    public SparkFileWriter(File outputFile, String delimiter) throws IOException {
+    public SparkFileWriter(File outputFile, String delimiter) {
         this(outputFile, delimiter, true);
     }
 
@@ -69,9 +67,8 @@ public class SparkFileWriter {
      * Creates a SparkFileWriter, mapped to a file. Messages will be appended or will overwrite the file depending on the appendToFile boolean. Default delimiters will be used.
      * @param outputFile the file to write data to.
      * @param appendToFile true to append to the file, false to overwrite the file.
-     * @throws java.io.IOException
      */
-    public SparkFileWriter(File outputFile, boolean appendToFile) throws IOException {
+    public SparkFileWriter(File outputFile, boolean appendToFile) {
         this(outputFile, DELIMITER_DEFAULT, appendToFile);
     }
 
@@ -80,14 +77,11 @@ public class SparkFileWriter {
      * @param outputFile the file to write data to.
      * @param delimiter the delimiters that are after every message in the file.
      * @param appendToFile true to append to the file, false to overwrite the file.
-     * @throws java.io.IOException
      */
-    public SparkFileWriter(File outputFile, String delimiter, boolean appendToFile) throws IOException {
+    public SparkFileWriter(File outputFile, String delimiter, boolean appendToFile) {
         this.outputFile = outputFile;
         this.delimiter = delimiter;
         this.appendToFile = appendToFile;
-
-        prepFileStreams();
     }
 
     /**
@@ -96,6 +90,10 @@ public class SparkFileWriter {
      * @throws java.io.IOException
      */
     public void write(HL7Structure message) throws IOException {
+        if (fw == null) {
+            prepFileStreams();
+        }
+        
         fw.write(message.marshal());
         fw.write(getDelimiter());
         fw.flush();
@@ -114,11 +112,13 @@ public class SparkFileWriter {
 
     /**
      * Closes the underlying FileWriter. If you call this method and attempt to write again, you will receive an
-     * IOException. Remember to close() when complete with your writing to file to avoid locks.
+     * IOException. Remember to close() when you are finished with your writing to file to avoid locks.
      * @throws java.io.IOException
      */
     public void close() throws IOException {
-        fw.close();
+        if ( fw != null) {
+            fw.close();
+        }
     }
 
     /**
@@ -133,9 +133,9 @@ public class SparkFileWriter {
      * Sets the output file to write to
      * @param outputFile the outputFile to set
      */
-    public void setOutputFile(File outputFile) throws IOException {
+    public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
-        prepFileStreams();
+        fw = null;
     }
 
     /**
@@ -166,14 +166,28 @@ public class SparkFileWriter {
      * Appends or Overwrites file. True appends, False means overwrite
      * @param appendToFile the appendToFile to set
      */
-    public void setAppendToFile(boolean appendToFile) throws IOException {
+    public void setAppendToFile(boolean appendToFile) {
         this.appendToFile = appendToFile;
-        prepFileStreams();
+        fw = null;
+
     }
 
     //reassigns the filewriter
     private void prepFileStreams() throws IOException {
         fw = new FileWriter(getOutputFile(), isAppendToFile());
+    }
+
+    /**
+     * Ensures that on finalization, the underlying file writer is closed.
+     * @throws java.lang.Throwable
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            close();        // close open files
+        } finally {
+            super.finalize();
+        }
     }
 
 }
