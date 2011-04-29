@@ -30,6 +30,7 @@ import java.util.List;
 
 /**
  * A simple adapter that will behave has a HL7MessageListener, receive the data, then allow you to access it in an List of HL7Structures.
+ * Due to memory constraints, this should only be used for small files.
  * @author dmorgan
  */
 public class HL7MessageListenerListAdapter implements HL7MessageListener {
