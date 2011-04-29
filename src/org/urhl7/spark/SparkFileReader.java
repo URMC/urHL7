@@ -42,6 +42,13 @@ public class SparkFileReader {
      */
     public static final String DELIMITER_DEFAULT = "\r\n";
 
+    /**
+     * Creates a new SparkFileReader, reading a file at the provided path, with no listener.
+     * @param filePath The file to read in
+     */
+    public SparkFileReader(String filePath) {
+        this(new File(filePath));
+    }
 
     /**
      * Creates a new SparkFileReader pointing at a specific file with no listener.
@@ -49,6 +56,15 @@ public class SparkFileReader {
      */
     public SparkFileReader(File inputFile) {
         this(inputFile, null, DELIMITER_DEFAULT);
+    }
+
+    /**
+     * Creates a new SparkFileReader, reading a file at the provided path, with a specified listener.
+     * @param filePath The file to read in
+     * @param listener the listener to use
+     */
+    public SparkFileReader(String filePath, HL7MessageListener listener) {
+        this(new File(filePath), listener);
     }
 
     /**
@@ -61,6 +77,15 @@ public class SparkFileReader {
     }
 
     /**
+     * Creates a new SparkFileReader, reading a file at the provided path, with no listener using the specified delimiter.
+     * @param filePath The file to read in
+     * @param delimiter the delimiter between messages
+     */
+    public SparkFileReader(String filePath, String delimiter) {
+        this(new File(filePath), delimiter);
+    }
+
+    /**
      * Creates a new SparkFileReader pointing at a specific file with no listener using the specified delimiter.
      * @param inputFile the file to read in
      * @param delimiter the delimiter between messages
@@ -70,10 +95,20 @@ public class SparkFileReader {
     }
 
     /**
+     * Creates a new SparkFileReader, reading a file at the provided path, with a listener, and a specified delimiter.
+     * @param filePath The file to read in
+     * @param listener the listener to use
+     * @param delimiter the delimiter between messages
+     */
+    public SparkFileReader(String filePath, HL7MessageListener listener, String delimiter) {
+        this(new File(filePath));
+    }
+
+    /**
      * Create a new SparkFileReader pointing a specific file, with a listener, and a specified delimiter.
-     * @param inputFile
-     * @param listener
-     * @param delimiter
+     * @param inputFile the file to read in
+     * @param listener the listener to use
+     * @param delimiter the delimiter between messages
      */
     public SparkFileReader(File inputFile, HL7MessageListener listener, String delimiter) {
         this.inputFile = inputFile;

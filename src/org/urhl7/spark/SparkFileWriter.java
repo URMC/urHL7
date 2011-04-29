@@ -46,12 +46,31 @@ public class SparkFileWriter {
 
 
     /**
+     * Creates a SparkFileWriter, mapped to a specific File path. Default delimiters are used, and the file will be APPENDED to if it
+     * already exists
+     * @param outputFilePath the path of file to write data to.
+     */
+    public SparkFileWriter(String outputFilePath) {
+        this(new File(outputFilePath));
+    }
+
+    /**
      * Creates a SparkFileWriter, mapped to a specific File. Default delimiters are used, and the file will be APPENDED to if it
      * already exists
      * @param outputFile the file to write data to.
      */
     public SparkFileWriter(File outputFile) {
         this(outputFile, DELIMITER_DEFAULT, true);
+    }
+
+    /**
+     * Creates a SparkFileWriter, mapped to a specific File path, with a specified delimiter. The file will be APPENDED to if it
+     * already exists
+     * @param outputFilePath the path of file to write data to.
+     * @param delimiter the delimiter that will be placed after every message.
+     */
+    public SparkFileWriter(String outputFilePath, String delimiter) {
+        this(new File(outputFilePath), delimiter);
     }
 
     /**
@@ -64,12 +83,32 @@ public class SparkFileWriter {
     }
 
     /**
+     * Creates a SparkFileWriter, mapped to a specific File path. Default delimiters are used. Messages will be appended or
+     * will overwrite the file depending on the appendToFile boolean.
+     * @param outputFilePath the path of file to write data to.
+     * @param appendToFile true to append to the file, false to overwrite the file.
+     */
+    public SparkFileWriter(String outputFilePath, boolean appendToFile) {
+        this(new File(outputFilePath), appendToFile);
+    }
+
+    /**
      * Creates a SparkFileWriter, mapped to a file. Messages will be appended or will overwrite the file depending on the appendToFile boolean. Default delimiters will be used.
      * @param outputFile the file to write data to.
      * @param appendToFile true to append to the file, false to overwrite the file.
      */
     public SparkFileWriter(File outputFile, boolean appendToFile) {
         this(outputFile, DELIMITER_DEFAULT, appendToFile);
+    }
+
+    /**
+     * Creates a SparkFileWriter, mapped to a specific File path, with a specified delimiter, and will append or overwrite the file.
+     * @param outputFilePath the path of file to write data to.
+     * @param delimiter the delimiter that will be placed after every message.
+     * @param appendToFile true to append to the file, false to overwrite the file.
+     */
+    public SparkFileWriter(String outputFilePath, String delimiter, boolean appendToFile) {
+        this(new File(outputFilePath), delimiter, appendToFile);
     }
 
     /**
