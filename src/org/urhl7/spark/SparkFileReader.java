@@ -151,9 +151,11 @@ public class SparkFileReader {
     /**
      * Begins pasring the messages in the file specified. This may throw an IOException and must be handled. The parse function reads in the file,
      * when it finds a delimiter will attempt to parse the message. This message is then sent to the listener specified.
+     * @return success of the parsing (if any of the messaceReceived(HL7Structure struct) calls return false, this will as well).
      * @throws java.io.IOException
      */
-    public void parse() throws java.io.IOException {
+    public boolean parse() throws java.io.IOException {
+        boolean success  = true;
         FileReader fr = new FileReader(inputFile);
 
         char[] buf = new char[getInternalBufferSize()];
@@ -183,10 +185,11 @@ public class SparkFileReader {
         //final cleanup.
         if (!sb.toString().trim().equals("")) {
             message = sb.toString();
-            listener.messageReceived(Igor.structure(new String(message)));
+            success = success && listener.messageReceived(Igor.structure(new String(message)));
         }
 
         fr.close();
+        return success;
     }
 
     /**
