@@ -32,7 +32,10 @@ import org.urhl7.utils.*;
  */
 public class HL7StructureHelper {
     private HL7Structure structure;
-    private static final boolean NEVER_RETURN_NULL = true;
+
+
+    private boolean NEVER_RETURN_NULL = true;
+    private boolean ROLL_UP_NON_EXISTANT_DOT_ONE = true;
 
     /**
      * Create a HL7StructureHelper that is bound to the provided HL7Structure
@@ -48,8 +51,7 @@ public class HL7StructureHelper {
      * @return if the data field or segment exists
      */
     public boolean has(String descriptor) {
-        LocationSpecification ls = LocationParser.parse(descriptor);
-        return has(ls);
+        return has(HL7Location.parse(descriptor));
     }
 
     /**
@@ -57,7 +59,7 @@ public class HL7StructureHelper {
      * @param loc the LocationSpecification of the data field
      * @return if the data field or segment exists
      */
-    public boolean has(LocationSpecification loc) {
+    /*public boolean has(LocationSpecification loc) {
         if (loc == null) { return false; }
         if (loc.getSegmentName() == null) { return false; }
 
@@ -125,6 +127,25 @@ public class HL7StructureHelper {
         }
 
         return fieldFound;
+    }*/
+
+    /**
+     * Determine if this structure has a particular data field or segment
+     * @param loc the HL7Location of the data field
+     * @return if the data field or segment exists
+     */
+    public boolean has(HL7Location loc) { //this is a very... simple way to do it. could be more efficient.
+        if (loc.hasSegment() && !loc.hasField()) {
+            HL7Segment segment = getSegment(loc);
+            if (segment != null) {
+                return true;
+            }
+        } else {
+            if (!(get(loc) instanceof EmptyField)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -134,8 +155,7 @@ public class HL7StructureHelper {
      * @return the first DataField that matches the descriptor
      */
     public DataField get(String descriptor) {
-        LocationSpecification ls = LocationParser.parse(descriptor);
-        return get(ls, NEVER_RETURN_NULL);
+        return get(HL7Location.parse(descriptor), NEVER_RETURN_NULL);
     }
 
     /**
@@ -145,69 +165,69 @@ public class HL7StructureHelper {
      * @return the first DataField that matches the descriptor
      */
     public DataField get(String descriptor, boolean neverReturnNull) {
-        LocationSpecification ls = LocationParser.parse(descriptor);
-        return get(ls, neverReturnNull);
+        return get(HL7Location.parse(descriptor), neverReturnNull);
     }
     /**
      * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
      * it will return an EmptyField with no data.
-     * @param loc the LocationSpecification of the data field
+     * @param loc the HL7Location of the data field
      * @return the first DataField that matches the descriptor
      */
-    public DataField get(LocationSpecification loc) {
+    public DataField get(HL7Location loc) {
         return get(loc, NEVER_RETURN_NULL);
     }
 
     /**
      * Retrieves the first data field at a specified location.
-     * @param loc the LocationSpecification of the data field
+     * @param loc the HL7Location of the data field
      * @param neverReturnNull flag to return a null object on a not found object (false) or an EmptyField (true)
      * @return the first DataField that matches the descriptor
      */
-    public DataField get(LocationSpecification loc, boolean neverReturnNull) {
-        int pos = 0;
-        for(HL7Segment segment : structure.getSegments()) {
-            boolean lookAtThisOne = false;
-            if (segment.getSegmentName().equalsIgnoreCase(loc.getSegmentName())) {
-                if(loc.isSpecifiedSegmentPosition()) {
-                    if (pos == loc.getSegmentRepPosition()) { lookAtThisOne = true; }
-                } else {
-                    lookAtThisOne = true;
-                }
-                pos++;
-            }
-            if (lookAtThisOne) {
-                try {
-                    int repFieldIndex = 0;
-                    HL7RepeatingField rf = segment.getRepeatingField(loc.getFieldPosition());
-                    if(loc.isSpecifiedFieldPosition()) {
-                        repFieldIndex = loc.getRepeatingFieldIndex();
-                    }
-
-                    HL7Field field = rf.getField(repFieldIndex);
-                    if (loc.getComponentPosition() != -1) {
-                        HL7FieldComponent fieldComp = field.getFieldComponent(loc.getComponentPosition()-1);
-
-                        if(loc.getSubcomponentPosition() != -1) {
-                            HL7FieldSubcomponent sc = fieldComp.getFieldSubcomponent(loc.getSubcomponentPosition()-1);
-                            return sc;
+    public DataField get(HL7Location loc, boolean neverReturnNull) {
+        try {
+            if (loc.hasSegment() && loc.hasField()) {
+                for(HL7Segment segment : getAllSegments(loc)) {
+                    try {
+                        List<HL7Field> fieldsThatMatch = new ArrayList<HL7Field>();
+                        if (loc.isFieldIndexImplied()) {
+                            fieldsThatMatch.addAll(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields());
                         } else {
-                            return fieldComp;
+                            fieldsThatMatch.add(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()));
                         }
 
-                    } else {
-                        return field;
-                    }
 
-                } catch (Exception e) { /* silent kaboom */ }
+                        if(loc.hasSubcomponent()) {
+                            for(HL7Field f : fieldsThatMatch) {
+                                try {
+                                    return f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex());
+                                } catch (Exception e) { /*e.printStackTrace();*/ }
+                            }
+                        } else if (loc.hasComponent()) {
+                            for(HL7Field f : fieldsThatMatch) {
+                                if (ROLL_UP_NON_EXISTANT_DOT_ONE && loc.getComponentHL7Position() == 1 && f.isBaseField()) {
+                                    return f;
+                                } else {
+                                    try {
+                                        return f.getFieldComponent(loc.getComponentIndex());
+                                    } catch (Exception e) { /*e.printStackTrace();*/ }
+                                }
+                            }
+                        } else {
+                            try {
+                                return fieldsThatMatch.get(0);
+                            } catch (Exception e) { /*e.printStackTrace();*/ }
+                        }
+                    } catch (Exception e) { /*e.printStackTrace();*/ }
+                }
             }
-
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         if (neverReturnNull) {
             return new EmptyField();
         } else {
             return null;
-        } 
+        }
     }
 
     /**
@@ -217,75 +237,55 @@ public class HL7StructureHelper {
      * @return all DataField object that match the descriptor, or an empty list if none do
      */
     public List<DataField> getAll(String descriptor) {
-        LocationSpecification ls = LocationParser.parse(descriptor);
-        return getAll(ls);
+        return getAll(HL7Location.parse(descriptor));
     }
 
     /**
      * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
      * does not exist, rather than erroring, it will return an empty list.
-     * @param loc the LocationSpecification of the data field
+     * @param loc the HL7Location of the data field
      * @return all DataField object that match the location, or an empty list if none do
      */
-    public List<DataField> getAll(LocationSpecification loc) { 
+    public List<DataField> getAll(HL7Location loc) {
         ArrayList<DataField> retList = new ArrayList<DataField>();
-        int pos = 0;
-        for(HL7Segment segment : structure.getSegments()) {
-            boolean lookAtThisOne = false;
-            if (segment.getSegmentName().equalsIgnoreCase(loc.getSegmentName())) {
-                if(loc.isSpecifiedSegmentPosition()) {
-                    if (pos == loc.getSegmentRepPosition()) { lookAtThisOne = true; }
-                } else {
-                    lookAtThisOne = true;
-                }
-                pos++;
-            }
-            if (lookAtThisOne) { //if you care about this segment...
+        if (loc.hasSegment() && loc.hasField()) {
+            for(HL7Segment segment : getAllSegments(loc)) {
                 try {
-                    int repFieldIndex = 0;
-
-                    HL7RepeatingField rf = segment.getRepeatingField(loc.getFieldPosition());
-                    if(loc.isSpecifiedFieldPosition()) {
-                        repFieldIndex = loc.getRepeatingFieldIndex();
-                    } 
-
-                    if (loc.isSpecifiedFieldPosition()) {
-                        HL7Field field = rf.getField(repFieldIndex);
-                        if (loc.getComponentPosition() != -1) {
-                            HL7FieldComponent fieldComp = field.getFieldComponent(loc.getComponentPosition()-1);
-
-                            if(loc.getSubcomponentPosition() != -1) {
-                                HL7FieldSubcomponent sc = fieldComp.getFieldSubcomponent(loc.getSubcomponentPosition()-1);
-                                retList.add(sc);
-                            } else {
-                                retList.add(fieldComp);
-                            }
-
-                        } else {
-                            retList.add(field);
-                        }
+                    List<HL7Field> fieldsThatMatch = new ArrayList<HL7Field>();
+                    if (loc.isFieldIndexImplied()) {
+                        fieldsThatMatch.addAll(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields());
                     } else {
-                        for(HL7Field field : rf.getFields()) {
-                            if (loc.getComponentPosition() != -1) {
-                                HL7FieldComponent fieldComp = field.getFieldComponent(loc.getComponentPosition()-1);
-
-                                if(loc.getSubcomponentPosition() != -1) {
-                                    HL7FieldSubcomponent sc = fieldComp.getFieldSubcomponent(loc.getSubcomponentPosition()-1);
-                                    retList.add(sc);
-                                } else {
-                                    retList.add(fieldComp);
-                                }
-
-                            } else {
-                                retList.add(field);
-                            }
-                        }
+                        fieldsThatMatch.add(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()));
                     }
 
-                } catch (Exception e) {  }
+                    if(loc.hasSubcomponent()) {
+                        for(HL7Field f : fieldsThatMatch) {
+                            try {
+                                retList.add(f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex()));
+                            } catch (Exception e) { /*e.printStackTrace();*/ }
+                        }
+                    } else if (loc.hasComponent()) {
+                        for(HL7Field f : fieldsThatMatch) {
+                            if (ROLL_UP_NON_EXISTANT_DOT_ONE && loc.getComponentHL7Position() == 1 && f.isBaseField()) {
+                                retList.add(f);
+                            } else {
+                                try {
+                                    retList.add(f.getFieldComponent(loc.getComponentIndex()));
+                                } catch (Exception e) { /*e.printStackTrace();*/ }
+                            }
+
+                            try {
+                                retList.add(f.getFieldComponent(loc.getComponentIndex()));
+                            } catch (Exception e) { /*e.printStackTrace();*/ }
+                        }
+                    } else {
+                        try {
+                            retList.addAll(fieldsThatMatch);
+                        } catch (Exception e) { /*e.printStackTrace();*/ }
+                    }
+                } catch (Exception e) { /*e.printStackTrace();*/ }
             }
         }
-
         return retList;
     }
 
@@ -295,20 +295,21 @@ public class HL7StructureHelper {
      * @return the first HL7Segment that matches the descriptor
      */
     public HL7Segment getSegment(String descriptor) {
-        LocationSpecification ls = LocationParser.parse(descriptor);
-        return getSegment(ls);
+        //LocationSpecification ls = LocationParser.parse(descriptor);
+        return getSegment(HL7Location.parse(descriptor));
     }
+
     /**
-     * Retrieves the first HL7Segment that matches the LocationSpecification (top to bottom)
-     * @param loc the LocationSpecification of the segment
+     * Retrieves the first HL7Segment that matches the HL7Location (top to bottom)
+     * @param loc the HL7Location of the segment
      * @return the first HL7Segment that matches the LocationSpecification
      */
-    public HL7Segment getSegment(LocationSpecification loc) {
+    public HL7Segment getSegment(HL7Location loc) {
         int positionCount = -1;
         for(HL7Segment segment : structure.getSegments()) {
             if (segment.getSegmentName().equalsIgnoreCase(loc.getSegmentName())) {
                 positionCount++;
-                if (!loc.isSpecifiedSegmentPosition() || (loc.isSpecifiedSegmentPosition() && positionCount == loc.getSegmentRepPosition())) {
+                if(loc.getSegmentIndex() == positionCount) {
                     return segment;
                 }
             }
@@ -322,27 +323,32 @@ public class HL7StructureHelper {
      * @return all HL7Segments that match the descriptor
      */
     public List<HL7Segment> getAllSegments(String descriptor) {
-        LocationSpecification ls = LocationParser.parse(descriptor);
-        return getAllSegments(ls);
+        //LocationSpecification ls = LocationParser.parse(descriptor);
+        return getAllSegments(HL7Location.parse(descriptor));
     }
-    
+
     /**
-     * Retrieves all segments that match the LocationSpecification (from top to bottom)
-     * @param loc the LocationSpecification of the segments
+     * Retrieves all segments that match the HL7Location (from top to bottom)
+     * @param loc the HL7Location of the segments
      * @return all HL7Segments that match the specification
      */
-    public List<HL7Segment> getAllSegments(LocationSpecification loc) {
+    public List<HL7Segment> getAllSegments(HL7Location loc) {
         ArrayList<HL7Segment> segments = new ArrayList<HL7Segment>();
         int positionCount = -1;
         for(HL7Segment segment : structure.getSegments()) {
             if (segment.getSegmentName().equalsIgnoreCase(loc.getSegmentName())) {
                 positionCount++;
-                if (!loc.isSpecifiedSegmentPosition() || (loc.isSpecifiedSegmentPosition() && positionCount == loc.getSegmentRepPosition())) {
+                if( loc.isSegmentIndexImplied() ) {
                     segments.add(segment);
+                } else {
+                    if(loc.getSegmentIndex() == positionCount) {
+                        segments.add(segment);
+                    }
                 }
             }
         }
         return segments;
     }
+
 
 }

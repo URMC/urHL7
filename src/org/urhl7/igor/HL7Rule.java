@@ -33,7 +33,7 @@ import org.urhl7.utils.*;
  */
 public class HL7Rule {
     
-    private LocationSpecification loc;
+    private HL7Location loc;
     private Rule ruleToEnforce;
 
     private HL7Rule() { }
@@ -44,7 +44,7 @@ public class HL7Rule {
      * @param rule the rule to apply to this segment or field
      */
     public HL7Rule(String descriptor, Rule rule) {
-        setLocationSpecification(LocationParser.parse(descriptor));
+        setLocationSpecification(HL7Location.parse(descriptor));
         setRuleToEnforce(rule);
     }
 
@@ -53,7 +53,7 @@ public class HL7Rule {
      * @param loc the location of the field or segment
      * @param rule the rule to apply to this segment or field
      */
-    public HL7Rule(LocationSpecification loc, Rule rule) {
+    public HL7Rule(HL7Location loc, Rule rule) {
         setLocationSpecification(loc);
         setRuleToEnforce(rule);
     }
@@ -62,7 +62,7 @@ public class HL7Rule {
      * Get the locationSpecification target of this HL7Rule
      * @return the location
      */
-    public LocationSpecification getLocationSpecification() {
+    public HL7Location getLocationSpecification() {
         return loc;
     }
 
@@ -70,7 +70,7 @@ public class HL7Rule {
      * Set the locationSpecification target of this HL7Rule
      * @param loc the location to set
      */
-    public void setLocationSpecification(LocationSpecification loc) {
+    public void setLocationSpecification(HL7Location loc) {
         this.loc = loc;
     }
 

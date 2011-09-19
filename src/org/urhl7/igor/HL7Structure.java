@@ -141,8 +141,9 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
      * @return true if it meets the requirements, false if it does not.
      */
     public boolean ruleTest(HL7Rule rule) {
-        LocationSpecification loc = rule.getLocationSpecification();
-        boolean isSegment = (loc.getRepeatingFieldIndex() == -1) && (loc.getFieldPosition() == -1);
+        HL7Location loc = rule.getLocationSpecification();
+        //boolean isSegment = (loc.getRepeatingFieldIndex() == -1) && (loc.getFieldPosition() == -1);
+        boolean isSegment = loc.hasSegment() && !loc.hasField();
         if (isSegment) {
             switch(rule.getRuleToEnforce()) {
                 case EXIST:
