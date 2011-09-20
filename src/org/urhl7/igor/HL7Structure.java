@@ -300,7 +300,7 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     public void changeDelims(char[] chars, boolean changeMSHDelims) {
         if (changeMSHDelims) {
             try {
-                if (helper().has("MSH2")) {
+                if (helper().has("MSH-2")) {
                     HL7Field field = helper().getSegment("MSH").getRepeatingField(1).getField(0);
                     field.unmarshal((new String(chars)).substring(1));
                 }
