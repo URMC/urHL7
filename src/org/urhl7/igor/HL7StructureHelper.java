@@ -37,12 +37,62 @@ public class HL7StructureHelper {
     private boolean NEVER_RETURN_NULL = true;
     private boolean ROLL_UP_NON_EXISTANT_DOT_ONE = true;
 
+    public final static int SETTING_NEVER_RETURN_NULL = 1;
+    public final static int SETTING_ROLL_UP_DOT_ONE = 2;
+
+
     /**
      * Create a HL7StructureHelper that is bound to the provided HL7Structure
      * @param structure the HL7Structure to bind to
      */
     public HL7StructureHelper(HL7Structure structure) {
         this.structure = structure;
+    }
+
+    /**
+     * Gets the current value of the setting defined by settingIdentifier
+     * @param settingIdentifier the setting identifier to get
+     * @return the value of the setting
+     */
+    public Object getSetting(int settingIdentifier) {
+        switch (settingIdentifier) {
+            case SETTING_NEVER_RETURN_NULL:
+                return NEVER_RETURN_NULL;
+            case SETTING_ROLL_UP_DOT_ONE:
+                return ROLL_UP_NON_EXISTANT_DOT_ONE;
+            default:
+                throw new IllegalArgumentException(settingIdentifier + " is not a valid setting identifier.");
+        }
+    }
+
+    /**
+     * Sets the setting defined by settingIdentifier to value
+     * @param settingIdentifier setting identifier (static variables of this class)
+     * @param value numeric value to set this setting to
+     */
+    public void setSetting(int settingIdentifier, int value) {
+        switch (settingIdentifier) {
+            default:
+                throw new IllegalArgumentException("Setting ID (" + settingIdentifier + ") is in invalid, or does not accept a integer parameter.");
+        }
+    }
+
+    /**
+     * Sets the setting defined by settingIdentifier to flag
+     * @param settingIdentifier setting identifier (static variables of this class)
+     * @param flag enable or disable the setting
+     */
+    public void setSetting(int settingIdentifier, boolean flag) {
+        switch (settingIdentifier) {
+            case SETTING_NEVER_RETURN_NULL:
+                NEVER_RETURN_NULL = flag;
+                break;
+            case SETTING_ROLL_UP_DOT_ONE:
+                ROLL_UP_NON_EXISTANT_DOT_ONE = flag;
+                break;
+            default:
+                throw new IllegalArgumentException("Setting ID (" + settingIdentifier + ") is invalid or does not accept a boolean parameter.");
+        }
     }
 
     /**
@@ -54,80 +104,6 @@ public class HL7StructureHelper {
         return has(HL7Location.parse(descriptor));
     }
 
-    /**
-     * Determine if this structure has a particular data field or segment
-     * @param loc the LocationSpecification of the data field
-     * @return if the data field or segment exists
-     */
-    /*public boolean has(LocationSpecification loc) {
-        if (loc == null) { return false; }
-        if (loc.getSegmentName() == null) { return false; }
-
-        //find segment first
-        boolean segmentExist = false;
-        int segCount = 0;
-        for(HL7Segment segment : structure.getSegments()) {
-            if (segment.getSegmentName().equalsIgnoreCase(loc.getSegmentName())) {
-                if(loc.isSpecifiedSegmentPosition()) {
-                    if (loc.getSegmentRepPosition() == -1 || segCount == loc.getSegmentRepPosition()) {
-                        segmentExist = true;
-                    }
-                } else {
-                    segmentExist = true;
-                }
-                segCount++;
-            }
-        }
-
-        boolean fieldFound = false;
-        //look up field now
-        if (loc.getFieldPosition() == -1) { //its a segment only
-            return segmentExist;
-        } else { //lets look for the field.
-            if (segmentExist) {
-
-                int pos = 0;
-                for(HL7Segment segment : structure.getSegments()) {
-                    boolean lookAtThisOne = false;
-                    if (segment.getSegmentName().equalsIgnoreCase(loc.getSegmentName())) {
-                        if(loc.isSpecifiedSegmentPosition()) {
-                            if (pos == loc.getSegmentRepPosition()) { lookAtThisOne = true; }
-                        } else {
-                            lookAtThisOne = true;
-                        }
-                        pos++;
-                    }
-                    if (lookAtThisOne) {
-                        try {
-                            int repFieldIndex = 0;
-                            HL7RepeatingField rf = segment.getRepeatingField(loc.getFieldPosition());
-                            if(loc.isSpecifiedFieldPosition()) {
-                                repFieldIndex = loc.getRepeatingFieldIndex();
-                            }
-
-                            HL7Field field = rf.getField(repFieldIndex);
-
-                            if (loc.getComponentPosition() != -1) {
-                                HL7FieldComponent fieldComp = field.getFieldComponent(loc.getComponentPosition());
-
-                                if(loc.getSubcomponentPosition() != -1) {
-                                    HL7FieldSubcomponent sc = fieldComp.getFieldSubcomponent(loc.getSubcomponentPosition());
-                                } else {
-                                    fieldFound = true;
-                                }
-
-                            } else {
-                                fieldFound = true;
-                            }
-
-                        } catch (Exception e) { }
-                    }
-                }
-            }
-        }
-
-        return fieldFound;
-    }*/
 
     /**
      * Determine if this structure has a particular data field or segment
