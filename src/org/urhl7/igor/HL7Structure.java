@@ -38,6 +38,9 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     private List<HL7Segment> segments;
     private String data;
 
+    protected boolean needsRecache = true;
+
+
     private HL7StructureHelper helper = null;
     
     private static final String SEGMENT_SPLIT_STRING =  "\r";
@@ -263,16 +266,38 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
             segment.unmarshal(segmentString);
             getSegments().add(segment);
         }
+
+        needsRecache = true;
     }
 
     /**
-     * Returns an List of the HL7Segment objects that are maintained in this data structure. This value can be null if no 
+     * Returns a List of the HL7Segment objects that are maintained in this data structure. This value can be null if no 
      * data was unmarshalled.
      * @return A list of HL7Segments
      */
     public List<HL7Segment> getSegments() {
         return segments;
     }
+
+
+    /**
+     * Returns a List of references to HL7Segment objects that are maintained in this data structure, but have a specific segment name. This value can be an empty list if no segments match,
+     * or no segments were unmarshalled.
+     * @return A list of HL7Segments
+     */
+    public List<HL7Segment> getSegments(String segmentName) {
+        List<HL7Segment> matchingSegs = new ArrayList<HL7Segment>();
+        if(segments != null) {
+            for(HL7Segment possibleMatch : segments) {
+                if (possibleMatch.getSegmentName().equals(segmentName)) {
+                    matchingSegs.add(possibleMatch);
+                }
+            }
+        }
+        
+        return matchingSegs;
+    }
+
 
     /**
      * Returns the delimiter set for this data object.
@@ -281,7 +306,16 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     public char[] getDelims() {
         return delimSet;
     }
-    
+
+    /**
+     * Changes the delimiter set for this HL7Structure. By default this will also change the MSH field that
+     * states what the delimiters are. If you do not want to do this, call changeDelims(charDelims, false);
+     * @param chars the characters (including field delimiter, ie '|') to set
+     */
+    public void changeDelims(String chars) {
+        changeDelims(chars.toCharArray(), true);
+    }
+
     /**
      * Changes the delimiter set for this HL7Structure. By default this will also change the MSH field that 
      * states what the delimiters are. If you do not want to do this, call changeDelims(charDelims, false);
@@ -300,10 +334,13 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     public void changeDelims(char[] chars, boolean changeMSHDelims) {
         if (changeMSHDelims) {
             try {
-                if (helper().has("MSH-2")) {
-                    HL7Field field = helper().getSegment("MSH").getRepeatingField(1).getField(0);
-                    field.unmarshal((new String(chars)).substring(1));
+                if (segments.get(0).getSegmentName().equals("MSH")) {
+                    segments.get(0).getRepeatingField(1).getField(0).unmarshal((new String(chars)).substring(1));
                 }
+                //if (helper().has("MSH-2")) {
+                //    HL7Field field = helper().getSegment("MSH").getRepeatingField(1).getField(0);
+                //    field.unmarshal((new String(chars)).substring(1));
+                //}
             } catch (Exception e) { } //do nothing if there is an error
         }
         

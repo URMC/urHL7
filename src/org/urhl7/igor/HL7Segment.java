@@ -41,6 +41,8 @@ public class HL7Segment implements GenericStructure, DelimitedStructure {
     //private String data;
     private HL7Structure parent;
 
+    private DataField segmentNameDataField = null;
+
     /**
      * Creates a HL7Segment object that understands the specified delimiters.
      * @param delims
@@ -130,6 +132,10 @@ public class HL7Segment implements GenericStructure, DelimitedStructure {
             f.unmarshal(field);
             getRepeatingFields().add(f);
         }
+
+        parent.needsRecache = true;
+        segmentNameDataField = getRepeatingField(0).getField(0);
+
     }
     
     /**
@@ -138,11 +144,11 @@ public class HL7Segment implements GenericStructure, DelimitedStructure {
      */
     public String getSegmentName() {
         //getRepeatingField(0).getField(0).getData();
-        String segmentName = "";
-        try {
-            segmentName = getRepeatingField(0).getField(0).getData();
-        } catch (Exception e) { segmentName = null; }
-        if (segmentName == null) { segmentName = ""; }
+        //String segmentName = "";
+        //try {
+        String segmentName = segmentNameDataField.getData();
+        //} catch (Exception e) { segmentName = null; }
+        //if (segmentName == null) { segmentName = ""; }
         return segmentName;
     }
     
@@ -153,7 +159,7 @@ public class HL7Segment implements GenericStructure, DelimitedStructure {
      */
     protected void setSegmentName(String segName) {
         //segmentName = segName;
-        getRepeatingField(0).getField(0).setData(segName);
+        segmentNameDataField.setData(segName);
     }
 
     /**
@@ -198,6 +204,11 @@ public class HL7Segment implements GenericStructure, DelimitedStructure {
         field.changeDelims(getDelims());
         HL7RepeatingField old = fields.set(pos, field);
         old.setParent(null);
+
+        //possibly dangerous
+        try {segmentNameDataField = getRepeatingField(0).getField(0);
+        } catch(Exception e) {segmentNameDataField=null;}
+
         return old;
     }
     

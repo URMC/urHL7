@@ -73,7 +73,8 @@ public class Igor {
         String data = "MSH" + new String(delims) + "\r";
         structure.unmarshal(data);
         if (additionalFields > 0) {
-            HL7Segment seg = structure.helper().getSegment("MSH");
+            //HL7Segment seg = structure.helper().getSegment("MSH");
+            HL7Segment seg = structure.getSegment(0);
             for(int i=0; i<additionalFields; i++) {
                 seg.addRepeatingField(Igor.quickField());
             }
@@ -148,7 +149,7 @@ public class Igor {
      */
     public static HL7Segment segment(char[] delims, String segmentName, int fieldCount) {
         HL7Segment segment = segment(delims, segmentName);
-        for(int i=0; i<fieldCount; i++) {
+        for(int i=1; i<fieldCount; i++) {
             segment.addRepeatingField(quickField());
         }
         return segment;

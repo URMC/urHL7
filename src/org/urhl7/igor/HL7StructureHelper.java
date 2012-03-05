@@ -33,13 +33,16 @@ import org.urhl7.utils.*;
 public class HL7StructureHelper {
     private HL7Structure structure;
 
-
     private boolean NEVER_RETURN_NULL = true;
     private boolean ROLL_UP_NON_EXISTANT_DOT_ONE = true;
 
     public final static int SETTING_NEVER_RETURN_NULL = 1;
     public final static int SETTING_ROLL_UP_DOT_ONE = 2;
 
+    private Map<HL7Location, DataField> _CACHE = null;
+    //private LinkedList<HL7Location> _KEYCACHE = null;
+
+    int cacheingDone = 0;
 
     /**
      * Create a HL7StructureHelper that is bound to the provided HL7Structure
@@ -47,6 +50,9 @@ public class HL7StructureHelper {
      */
     public HL7StructureHelper(HL7Structure structure) {
         this.structure = structure;
+        this._CACHE = new LinkedHashMap<HL7Location, DataField>();
+        //this._KEYCACHE = new LinkedList<HL7Location>();
+        refreshCache();
     }
 
     /**
@@ -229,34 +235,55 @@ public class HL7StructureHelper {
                 try {
                     List<HL7Field> fieldsThatMatch = new ArrayList<HL7Field>();
                     if (loc.isFieldIndexImplied()) {
-                        fieldsThatMatch.addAll(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields());
+                        //fieldsThatMatch.addAll(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields());
+                        for(HL7Field field : segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields()) {//
+                            if (!fieldsThatMatch.contains(field)){
+                                fieldsThatMatch.add(field);
+                            }
+                        }//
                     } else {
-                        fieldsThatMatch.add(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()));
+                        if (!fieldsThatMatch.contains(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()))) {//
+                            fieldsThatMatch.add(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()));
+                        }//
                     }
 
                     if(loc.hasSubcomponent()) {
                         for(HL7Field f : fieldsThatMatch) {
                             try {
-                                retList.add(f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex()));
+                                if(!retList.contains(f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex()))) {//
+                                    retList.add(f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex()));
+                                }//
                             } catch (Exception e) { /*e.printStackTrace();*/ }
                         }
                     } else if (loc.hasComponent()) {
                         for(HL7Field f : fieldsThatMatch) {
                             if (ROLL_UP_NON_EXISTANT_DOT_ONE && loc.getComponentHL7Position() == 1 && f.isBaseField()) {
-                                retList.add(f);
+                                if (!retList.contains(f)) {//
+                                    retList.add(f);
+                                }//
                             } else {
                                 try {
-                                    retList.add(f.getFieldComponent(loc.getComponentIndex()));
+                                    if(!retList.contains(f.getFieldComponent(loc.getComponentIndex()))) {
+                                        retList.add(f.getFieldComponent(loc.getComponentIndex()));
+                                    }
                                 } catch (Exception e) { /*e.printStackTrace();*/ }
                             }
 
                             try {
-                                retList.add(f.getFieldComponent(loc.getComponentIndex()));
+                                if (!retList.contains(f.getFieldComponent(loc.getComponentIndex()))) {
+                                    retList.add(f.getFieldComponent(loc.getComponentIndex()));
+                                }
                             } catch (Exception e) { /*e.printStackTrace();*/ }
                         }
                     } else {
                         try {
-                            retList.addAll(fieldsThatMatch);
+                            for(HL7Field fi : fieldsThatMatch) {
+                                if(!retList.contains(fi)) {
+                                    retList.add(fi);
+                                }
+                            }
+                            //retList.addAll(fieldsThatMatch);
+                            
                         } catch (Exception e) { /*e.printStackTrace();*/ }
                     }
                 } catch (Exception e) { /*e.printStackTrace();*/ }
@@ -326,5 +353,166 @@ public class HL7StructureHelper {
         return segments;
     }
 
+
+    public DataField nGet(String descriptor) {
+        return nGet(HL7Location.parse(descriptor));
+    }
+
+    public DataField nGet(HL7Location loc) {
+        if (structure.needsRecache) {
+            refreshCache();
+        }
+
+        for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
+            if (entry.getKey().matches(loc)) {
+                return entry.getValue();
+            }
+        }
+
+
+        return new EmptyField();
+    }
+
+    public List<DataField> nGetAll(HL7Location loc) {
+        if (structure.needsRecache) {
+            refreshCache();
+        }
+        ArrayList<DataField> listOfFields = new ArrayList<DataField>();
+
+        for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
+            if (entry.getKey().matches(loc)) {
+                listOfFields.add(entry.getValue());
+            }
+        }
+        
+        return listOfFields;
+    }
+
+
+
+
+    /**
+     * This method is magic, very buggy, but also very useful. Use with care.
+     * @param descriptor
+     * @return
+     */
+    /*public List<List<DataField>> getRelated(String descriptor) {
+        String[] eles = StringHelper.explode(descriptor, ",");
+        List<HL7Location> locs = new ArrayList<HL7Location>();
+        for(String ele : eles) {
+            locs.add(HL7Location.parse(ele.trim()));
+        }
+        return getRelated(locs);
+    }*/
+
+    /**
+     * This method is magic, very buggy, but also very useful. Use with care.
+     * @param locs
+     * @return
+     */
+    /*public List<List<DataField>> getRelated(List<HL7Location> locs) {
+        ArrayList<HL7Location> bucketHeader = new ArrayList<HL7Location>();
+        for(HL7Location loc : locs) {
+            bucketHeader.add(HL7Location.parse(loc.getShortHL7Location()));
+        }
+
+        System.out.println(bucketHeader);
+
+        Iterator<Map.Entry<HL7Location, DataField>> it = _CACHE.entrySet().iterator();
+
+        Map<HL7Location, DataField> lastData = new HashMap<HL7Location, DataField>();
+
+        List<Map<HL7Location, DataField>> dset = new ArrayList<Map<HL7Location, DataField>>();
+        while(it.hasNext()) {
+            Map.Entry<HL7Location, DataField> entry = it.next();
+            for(int i=0; i<bucketHeader.size(); i++) {
+                if (entry.getKey().matches(bucketHeader.get(i))) {
+                    //System.out.println(bucketHeader.get(i).getHL7Location() + " / " + entry.getKey().getHL7Location() + " : " + entry.getValue());
+                    lastData.put(bucketHeader.get(i), entry.getValue());
+                    if (i == (bucketHeader.size()-1)) {
+                        //System.out.println(lastData);
+                        //bucket.put(lastData);
+                        Map<HL7Location, DataField> newRecord = new HashMap<HL7Location, DataField>();
+                        newRecord.putAll(lastData);
+                        dset.add(newRecord);
+                    }
+                }
+            }
+        }
+
+
+        //System.out.println(dset);
+
+        for(Map<HL7Location, DataField> record : dset) {
+            //System.out.println(record);
+            System.out.println(record.get(HL7Location.parse("PID-3")) + " obr: " + record.get(HL7Location.parse("OBR-2")) + " with " + record.get(HL7Location.parse("OBX-5")));
+        }
+
+
+        return null;
+    }*/
+
+    private void refreshCache() {
+        cacheingDone++;
+        LinkedHashMap<HL7Location, DataField> table = new LinkedHashMap<HL7Location, DataField>();
+
+        //for(HL7Segment segment : structure.getSegments()) {
+        List<HL7Segment> segmentList = structure.getSegments();
+        HashMap<String, Integer> mappingIndex = new HashMap<String,Integer>();
+
+        for(int sIdx=0; sIdx<segmentList.size(); sIdx++) {
+            HL7Segment segment = segmentList.get(sIdx);
+            String segmentName = segment.getSegmentName();
+            Integer segmentIndex = mappingIndex.get(segmentName);
+            if (segmentIndex == null) {
+                mappingIndex.put(segmentName, 0);
+                segmentIndex = 0;
+            } else {
+                segmentIndex++;
+                mappingIndex.put(segmentName, segmentIndex);
+            }
+
+
+            List<HL7RepeatingField> repeatingFieldList = segment.getRepeatingFields();
+            for(int rfIdx=0; rfIdx<repeatingFieldList.size(); rfIdx++) {
+                HL7RepeatingField rf = repeatingFieldList.get(rfIdx);
+                    List<HL7Field> fieldList = rf.getFields();
+                    for(int fIdx=0; fIdx<fieldList.size(); fIdx++){
+                        HL7Field field = fieldList.get(fIdx);
+
+                        if (field.isBaseField() ){
+                            HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, -1, -1);
+                            table.put(loc, field);
+                        } else {
+                            List<HL7FieldComponent> fieldCompList = field.getFieldComponents();
+                            for(int fcIdx=0; fcIdx<fieldCompList.size(); fcIdx++) {
+                                HL7FieldComponent fieldcomp = fieldCompList.get(fcIdx);
+                                if(fieldcomp.isBaseField() ){
+                                    HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, -1);
+                                    table.put(loc, fieldcomp);
+                                } else {
+                                    List<HL7FieldSubcomponent> fieldSubcompList = fieldcomp.getFieldSubcomponents();
+                                    for(int fscIdx=0; fscIdx<fieldSubcompList.size(); fscIdx++) {
+                                        HL7FieldSubcomponent fieldsub = fieldSubcompList.get(fscIdx);
+                                        if(fieldsub.isBaseField() ){
+                                            HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, fscIdx);
+                                            table.put(loc, fieldsub);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                //}
+            }
+        }
+
+        _CACHE = table;
+        structure.needsRecache = false;
+    }
+
+    public void printCacheUsage() {
+        //System.out.println("Cache run: " + cacheingDone);
+    }
 
 }

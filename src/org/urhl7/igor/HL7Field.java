@@ -125,6 +125,8 @@ public class HL7Field implements DataField, DelimitedStructure {
             baseField = true;
             isMSHDelimiterField = true;
         }
+
+        parent.getParent().getParent().needsRecache = true;
     }
 
     /**

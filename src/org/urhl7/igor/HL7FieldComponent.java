@@ -136,6 +136,8 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
             this.data = data;
             baseField = true;
         }
+
+        parent.getParent().getParent().getParent().needsRecache = true;
     }
 
     /**

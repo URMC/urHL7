@@ -29,7 +29,7 @@ import java.util.*;
  * @author dmorgan
  */
 public class HL7Location {
-    private HL7Location() {} 
+    private HL7Location() {}
 
     /* underlying data */
     private String segmentName = null;
@@ -62,7 +62,173 @@ public class HL7Location {
         System.out.println("-------------------------------------------------------");
         System.out.println("Segment Index Implied?: " + isSegmentIndexImplied);
         System.out.println("Field Index Implied?: " + isFieldIndexImplied);
+        System.out.println("-------------------------------------------------------");
+        System.out.println("Short Location: " + getShortHL7Location());
+        System.out.println("Location: " + getHL7Location());
+        System.out.println("Full Location: " + getFullyQualifiedHL7Location());
     }
+
+    public HL7Location(String segmentName, int segmentIndex, int repFieldIndex, int fieldIndex, int componentIndex, int subcomponentIndex) {
+        this.segmentName = segmentName;
+        this.segmentIndex = segmentIndex;
+
+        this.hasSegment = true;
+        this.isSegmentIndexImplied = false;
+
+        if (repFieldIndex >= 0) {
+            this.repeatingFieldIndexInSegment = repFieldIndex;
+            this.fieldIndexInRepeatingField = fieldIndex;
+
+            this.hasField = true;
+            this.isFieldIndexImplied = false;
+
+            if (componentIndex >= 0) {
+                this.componentIndexInField = componentIndex;
+                this.hasComponent = true;
+
+                if(subcomponentIndex >= 0) {
+                    this.subcomponentIndexInComponent = subcomponentIndex;
+                    this.hasSubcomponent = true;
+                }
+            }
+        }
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        boolean areWeEqual = false;
+        if (o instanceof HL7Location) {
+            HL7Location other = (HL7Location)o;
+
+
+            areWeEqual = areWeEqual && this.segmentName.equals(other.segmentName);
+            if (areWeEqual) {
+                areWeEqual = areWeEqual && (this.segmentIndex == other.segmentIndex);
+                areWeEqual = areWeEqual && (this.isSegmentIndexImplied() == other.isSegmentIndexImplied());
+                if (areWeEqual) {
+                    areWeEqual = areWeEqual && (this.repeatingFieldIndexInSegment == other.repeatingFieldIndexInSegment);
+                    if (areWeEqual) {
+                        areWeEqual = areWeEqual && (this.fieldIndexInRepeatingField == other.fieldIndexInRepeatingField);
+                        areWeEqual = areWeEqual && (this.isFieldIndexImplied() == other.isFieldIndexImplied());
+                        if (areWeEqual) {
+                            areWeEqual = areWeEqual && (this.componentIndexInField == other.componentIndexInField);
+                            if (areWeEqual) {
+                                areWeEqual = areWeEqual && (this.subcomponentIndexInComponent == other.subcomponentIndexInComponent);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return areWeEqual;
+    }
+
+    @Override
+    public int hashCode() {
+        return (segmentIndex*1000)+(fieldIndexInRepeatingField+(repeatingFieldIndexInSegment*100))+(componentIndexInField+10)+subcomponentIndexInComponent;
+    }
+
+    @Override
+    public String toString() {
+        return this.getFullyQualifiedHL7Location();
+    }
+
+    /**
+     * Does the loc specified (perhaps more generic) match this location (more specific)
+     * @param loc
+     * @return
+     */
+    public boolean matches(HL7Location loc) {
+        boolean matchSoFar = loc.getSegmentName().equals(this.getSegmentName());
+        matchSoFar = matchSoFar && (this.hasField == loc.hasField);
+        matchSoFar = matchSoFar && (this.hasComponent == loc.hasComponent);
+        matchSoFar = matchSoFar && (this.hasSubcomponent == loc.hasSubcomponent);
+
+        if(matchSoFar) {
+            if(loc.isSegmentIndexImplied || this.isSegmentIndexImplied) {
+                
+            } else {
+                matchSoFar = (loc.segmentIndex == this.segmentIndex);
+            }
+            
+            if (matchSoFar) {
+                if (loc.hasField) {
+                    matchSoFar = (this.repeatingFieldIndexInSegment == loc.repeatingFieldIndexInSegment);
+
+                    if (matchSoFar) {
+                        if (loc.isFieldIndexImplied || this.isFieldIndexImplied) {
+
+                        } else {
+                            matchSoFar = (loc.fieldIndexInRepeatingField == this.fieldIndexInRepeatingField);
+                        }
+
+                        if (matchSoFar && loc.hasComponent) {
+                            matchSoFar = (loc.componentIndexInField == this.componentIndexInField);
+
+                            if (matchSoFar && loc.hasSubcomponent) {
+                                matchSoFar = (loc.subcomponentIndexInComponent == this.subcomponentIndexInComponent);
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
+        return matchSoFar;
+
+            /* if (areWeEqual) {
+                        areWeEqual = areWeEqual && (this.fieldIndexInRepeatingField == other.fieldIndexInRepeatingField);
+                        areWeEqual = areWeEqual && (this.isFieldIndexImplied() == other.isFieldIndexImplied());
+                        if (areWeEqual) {
+                            areWeEqual = areWeEqual && (this.componentIndexInField == other.componentIndexInField);
+                            if (areWeEqual) {
+                                areWeEqual = areWeEqual && (this.subcomponentIndexInComponent == other.subcomponentIndexInComponent);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (loc.repeatingFieldIndexInSegment == this.repeatingFieldIndexInSegment) {
+                //if (loc.isFieldIndexImplied && (loc.) ) {
+                    
+                //}
+            }
+            
+            
+            if (loc.isFieldIndexImplied() && loc.isSegmentIndexImplied()) {
+                if(loc.getShortHL7Location().equals(this.getShortHL7Location())) {
+                    return true;
+                }
+            } else {
+                if(!loc.isFieldIndexImplied() && loc.isSegmentIndexImplied()) {
+                    if(loc.getShortHL7Location().equals(this.getShortHL7Location()) && (loc.getFieldIndex() == this.getFieldIndex())) {
+                        return true;
+                    }
+                }
+                if(!loc.isSegmentIndexImplied() && loc.isFieldIndexImplied()) {
+                    if(loc.getShortHL7Location().equals(this.getShortHL7Location()) && (loc.getSegmentIndex() == this.getSegmentIndex())) {
+                        return true;
+                    }
+                }
+
+                if(!loc.isSegmentIndexImplied() && !loc.isFieldIndexImplied()) {
+                    if(loc.getShortHL7Location().equals(this.getShortHL7Location()) && (loc.getSegmentIndex() == this.getSegmentIndex()) && (loc.getFieldIndex() == this.getFieldIndex())) {
+                        return true;
+                    }
+                }
+            }
+
+            //if (this.equals(loc)) {
+            //    return true;
+            //}
+        }
+        return false;*/
+    }
+    //public boolean equals(HL7Location loc) {
+    //    return false;
+    //}
 
     public static HL7Location parse(String location) {
         //throw IllegalArgumentException("Invalid HL7 location: " + location);
@@ -187,7 +353,18 @@ public class HL7Location {
         } else if (gs instanceof HL7Segment) {
             HL7Segment segment = (HL7Segment)gs;
             loc.segmentName = segment.getSegmentName();
-            loc.segmentIndex = segment.getParent().helper().getAllSegments(loc.segmentName).indexOf(segment);
+            //loc.segmentIndex = segment.getParent().helper().getAllSegments(loc.segmentName).indexOf(segment);
+            List<HL7Segment> allSegments = segment.getParent().getSegments();
+            List<HL7Segment> specialSegments = new ArrayList<HL7Segment>();
+
+            for(HL7Segment thisSegment : allSegments) {
+                if(thisSegment.getSegmentName().equals(loc.segmentName)) {
+                    specialSegments.add(thisSegment);
+                }
+            }
+            loc.segmentIndex = specialSegments.indexOf(segment);
+
+
             loc.hasSegment = true;
             return loc;
         }
@@ -239,6 +416,34 @@ public class HL7Location {
         }
         return fqLoc.toString();
     }
+
+    public String getShortHL7Location() {
+        StringBuffer fqLoc = new StringBuffer();
+        if(hasSegment()) {
+            fqLoc.append(getSegmentName());
+            //if (!isSegmentIndexImplied) {
+            //    fqLoc.append("[" + getSegmentIndex() + "]");
+            //}
+
+            if(hasField()) {
+                fqLoc.append("-");
+                fqLoc.append(getRepeatingFieldHL7Position());
+                //if (!isFieldIndexImplied) {
+                //    fqLoc.append("[" + getFieldIndex() + "]");
+                //}
+                if(hasComponent()) {
+                    fqLoc.append(".");
+                    fqLoc.append(getComponentHL7Position());
+                    if(hasSubcomponent()) {
+                        fqLoc.append(".");
+                        fqLoc.append(getSubcomponentHL7Position());
+                    }
+                }
+            }
+        }
+        return fqLoc.toString();
+    }
+
     public String getSegmentName() {
         return segmentName;
     }

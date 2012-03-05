@@ -99,6 +99,8 @@ public class HL7FieldSubcomponent implements DataField, DelimitedStructure {
     public void unmarshal(String data) {
         this.data = data;
         baseField = true;
+
+        parent.getParent().getParent().getParent().getParent().needsRecache = true;
     }
 
     /**

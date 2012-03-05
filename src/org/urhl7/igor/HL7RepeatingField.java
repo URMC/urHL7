@@ -161,7 +161,8 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
             f.unmarshal(field);
             fields.add(f);
         }
-        
+
+        parent.getParent().needsRecache = true;
     }
 
     /**
@@ -223,4 +224,16 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
     public String toString() {
         return marshal();
     }
+
+/*
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+    @Override
+    public boolean equals(Object o) {
+
+        return toString().equals(o.toString());
+    }
+*/
 }

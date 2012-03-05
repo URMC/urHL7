@@ -35,33 +35,32 @@ public class HL7Escape {
      * @return unencoded data
      */
     public static String unescape(char[] delimiters, String data) {
-        if (data != null) {
             String tdata = data.toString();
 
-            char[] escapeEscCharSeq = {delimiters[3], 'E', delimiters[3]};
-            String escEsc = new String(escapeEscCharSeq);
+            if(tdata.contains( ""+delimiters[3] )) {
+                char[] escapeEscCharSeq = {delimiters[3], 'E', delimiters[3]};
+                String escEsc = new String(escapeEscCharSeq);
 
-            char[] escapeFieldCharSeq = {delimiters[3], 'F', delimiters[3]};
-            String escField = new String(escapeFieldCharSeq);
+                char[] escapeFieldCharSeq = {delimiters[3], 'F', delimiters[3]};
+                String escField = new String(escapeFieldCharSeq);
 
-            char[] escapeRepCharSeq = {delimiters[3], 'R', delimiters[3]};
-            String escRep = new String(escapeRepCharSeq);
+                char[] escapeRepCharSeq = {delimiters[3], 'R', delimiters[3]};
+                String escRep = new String(escapeRepCharSeq);
 
-            char[] escapeSubCharSeq = {delimiters[3], 'S', delimiters[3]};
-            String escSub = new String(escapeSubCharSeq);
+                char[] escapeSubCharSeq = {delimiters[3], 'S', delimiters[3]};
+                String escSub = new String(escapeSubCharSeq);
 
-            char[] escapeSubSubCharSeq = {delimiters[3], 'T', delimiters[3]};
-            String escSubSub = new String(escapeSubSubCharSeq);
+                char[] escapeSubSubCharSeq = {delimiters[3], 'T', delimiters[3]};
+                String escSubSub = new String(escapeSubSubCharSeq);
 
 
-            tdata = tdata.replace(escSubSub, delimiters[4]+"");
-            tdata = tdata.replace(escSub, delimiters[1]+"");
-            tdata = tdata.replace(escRep, delimiters[2]+"");
-            tdata = tdata.replace(escField, delimiters[0]+"");
-            tdata = tdata.replace(escEsc, delimiters[3]+"");
-            
+                tdata = tdata.replace(escSubSub, delimiters[4]+"");
+                tdata = tdata.replace(escSub, delimiters[1]+"");
+                tdata = tdata.replace(escRep, delimiters[2]+"");
+                tdata = tdata.replace(escField, delimiters[0]+"");
+                tdata = tdata.replace(escEsc, delimiters[3]+"");
+            }
             return tdata;
-        } else { return data; }
     }
 
     /**
