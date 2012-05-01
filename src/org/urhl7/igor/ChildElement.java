@@ -23,12 +23,14 @@
 package org.urhl7.igor;
 
 /**
- *
+ * Interface that guarentees that an element is a child. Allows DataField to have a getParent() method.
  * @author dmorgan
  */
 public interface ChildElement {
     /**
      * Allows every element to describe it's parent.
+     *
+     * @return The parent object of this element
      */
     public Object getParent();
 }

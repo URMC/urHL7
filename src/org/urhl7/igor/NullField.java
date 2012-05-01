@@ -25,7 +25,7 @@
 package org.urhl7.igor;
 
 /**
- * An EmptyField is a DataField that has no data, and no references to anything. However,
+ * An NullField is a DataField that has no data, and no references to anything. However,
  * a HL7Structure may reference it. It is usually used as a placeholder for where a DataField
  * needs to exist, but doesn't for some reason (usually an error condition beind supressed).
  * @author dmorgan
@@ -34,30 +34,54 @@ public class NullField implements DataField {
     private String data = "";
 
     /**
-     * Creates a new EmptyField that has no data, and no reference attachments.
+     * Creates a new NullField that has no data, and no reference attachments.
      */
     public NullField() {}
 
+    /**
+     * Gets the data of this NullField, which is usually an empty string, unless you've modified it.
+     * @return the data in this object
+     */
     public String getData() {
         return data;
     }
 
+    /**
+     * Sets the data of this NullField, which will never be seen, unless accessed using getData() in the future.
+     * @param data String to store in this NullField
+     */
     public void setData(String data) {
         this.data = data;
     }
 
+    /**
+     * Returns the data in this field
+     * @return
+     */
     public String marshal() {
         return data;
     }
 
+    /**
+     * Unmarshals the data into this field, which is the same as setData(data)
+     */
     public void unmarshal(String data) {
         this.data = data;
     }
 
+    /**
+     * Displays this field as a String. Will return "NullField*[dataStored]"
+     * @return a String "NullField*" plus data that was stored on this field+
+     */
+    @Override
     public String toString() {
-        return "EmptyField*" + marshal();
+        return "NullField*" + marshal();
     }
 
+    /**
+     * Will always return null, as this object is orphaned.
+     * @return a null value
+     */
     public Object getParent() {
         return null;
     }

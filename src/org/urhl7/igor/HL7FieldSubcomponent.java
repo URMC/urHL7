@@ -77,6 +77,10 @@ public class HL7FieldSubcomponent implements DataField, DelimitedStructure {
         return delims;
     }
 
+    /**
+     * Changes the delimiter of this HL7FieldSubcomponent
+     * @param delims to change to
+     */
     public void changeDelims(char[] delims) {
         String tmpData = getData();
         this.delims = delims;

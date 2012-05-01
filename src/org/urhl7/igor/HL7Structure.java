@@ -38,6 +38,9 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     private List<HL7Segment> segments;
     private String data;
 
+    /**
+     * A dirty flag to tell if the structure of this object may have recently been changed.
+     */
     protected boolean needsRecache = true;
 
 

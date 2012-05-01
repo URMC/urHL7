@@ -46,7 +46,9 @@ public class HL7Location {
     private boolean isSegmentIndexImplied = false;
     private boolean isFieldIndexImplied = false;
 
-    public void report() {
+
+    //kept for debugging purposes
+    private void report() {
         System.out.println("Location breakdown: ");
         System.out.println("\tSegment Name: " + segmentName);
         System.out.println("\tSegment Index: " + segmentIndex);
@@ -68,6 +70,16 @@ public class HL7Location {
         System.out.println("Full Location: " + getFullyQualifiedHL7Location());
     }
 
+    /**
+     * Creates a HL7Location with the provided information. Generally these should not be generated manually.
+     *
+     * @param segmentName Name of the segment
+     * @param segmentIndex Instance number of segment with that name in message
+     * @param repFieldIndex Field position in segment
+     * @param fieldIndex Index of Field in repeating field, which is in segment
+     * @param componentIndex Index of the component of a field
+     * @param subcomponentIndex Index of the subcomponent of a component
+     */
     public HL7Location(String segmentName, int segmentIndex, int repFieldIndex, int fieldIndex, int componentIndex, int subcomponentIndex) {
         this.segmentName = segmentName;
         this.segmentIndex = segmentIndex;
@@ -94,10 +106,22 @@ public class HL7Location {
         }
     }
 
+    /**
+     * Expresses if this HL7Location is fully qualified with no ambiguity (no implied fields)
+     * @return true if no indexes are implied
+     */
+    public boolean isFullyQualified() {
+        return ((!isSegmentIndexImplied) && (!isFieldIndexImplied));
+    }
 
+    /**
+     * Tests if an HL7Location is the same specific location as this location
+     * @param o the HL7Location
+     * @return true if o matches this HL7Location
+     */
     @Override
     public boolean equals(Object o) {
-        boolean areWeEqual = false;
+        boolean areWeEqual = true;
         if (o instanceof HL7Location) {
             HL7Location other = (HL7Location)o;
 
@@ -124,20 +148,28 @@ public class HL7Location {
         return areWeEqual;
     }
 
+    /**
+     * Predictably hashes this HL7Location
+     * @return returns a hashcode for this object
+     */
     @Override
     public int hashCode() {
         return (segmentIndex*1000)+(fieldIndexInRepeatingField+(repeatingFieldIndexInSegment*100))+(componentIndexInField+10)+subcomponentIndexInComponent;
     }
 
+    /**
+     * This object in String form
+     * @return the string provided by getFullQualifiedHL7Location()
+     */
     @Override
     public String toString() {
         return this.getFullyQualifiedHL7Location();
     }
 
     /**
-     * Does the loc specified (perhaps more generic) match this location (more specific)
-     * @param loc
-     * @return
+     * Does the loc specified (perhaps more generic) match this location (more specific). This allows a PID-3 to match PID[0]-3 AND PID[1]-3.
+     * @param loc the location to test against
+     * @return if loc matches
      */
     public boolean matches(HL7Location loc) {
         boolean matchSoFar = loc.getSegmentName().equals(this.getSegmentName());
@@ -179,6 +211,18 @@ public class HL7Location {
     }
 
 
+    /**
+     * Parses a plain text string into a HL7Location. Examples of valid strings are:
+     * <ul>
+     * <li>PID-3</li>
+     * <li>PID-3.1</li>
+     * <li>OBX[2]-5</li>
+     * </ul>
+     * <br />
+     * You can omit the hyphen, for segments that are properly formatted with a 3-character segment name
+     * @param location A String location representation
+     * @return A prepared HL7Location as described by location.
+     */
     public static HL7Location parse(String location) {
 
         try {
@@ -270,12 +314,18 @@ public class HL7Location {
         }
     }
 
+    /**
+     * Determines the specific HL7Location of an arbitrary GenericStructure object in an HL7Structure.
+     * @param gs The GenericStructure to locate
+     * @return a fully qualified HL7Location
+     */
     public static HL7Location determine(GenericStructure gs) {
         HL7Location loc = new HL7Location();
         applyLocationInfo(loc, gs);
         return loc;
     }
 
+    //the magic method
     private static HL7Location applyLocationInfo(HL7Location loc, GenericStructure gs) {
         if (gs instanceof HL7FieldSubcomponent) {
             HL7FieldSubcomponent fieldsubcomp = (HL7FieldSubcomponent)gs;
@@ -320,6 +370,10 @@ public class HL7Location {
         return loc;
     }
 
+    /**
+     * Represent this HL7Location object as a full string description
+     * @return this location as a string
+     */
     public String getFullyQualifiedHL7Location() {
         StringBuffer fqLoc = new StringBuffer();
         if(hasSegment()) {
@@ -339,6 +393,11 @@ public class HL7Location {
         }
         return fqLoc.toString();
     }
+
+    /**
+     * Represent this HL7Location as a shorthanded String
+     * @return this location as a string
+     */
     public String getHL7Location() {
         StringBuffer fqLoc = new StringBuffer();
         if(hasSegment()) {
@@ -366,6 +425,10 @@ public class HL7Location {
         return fqLoc.toString();
     }
 
+    /**
+     * Represent this HL7Location as a condensed string
+     * @return this location as a string
+     */
     public String getShortHL7Location() {
         StringBuffer fqLoc = new StringBuffer();
         if(hasSegment()) {
@@ -393,12 +456,26 @@ public class HL7Location {
         return fqLoc.toString();
     }
 
+    /**
+     * The name of the segment defined in this HL7Location
+     * @return Segment name
+     */
     public String getSegmentName() {
         return segmentName;
     }
+
+    /**
+     * The index of the segment defined in this HL7Location
+     * @return Segment index
+     */
     public int getSegmentIndex() {
         return segmentIndex;
-    }    
+    }
+
+    /**
+     * The position (in the HL7 definition) of a repeating field in an HL7Structure
+     * @return RepeatingField position
+     */
     public int getRepeatingFieldHL7Position() {
         if(getSegmentName().equals("MSH")) {
             if (repeatingFieldIndexInSegment != 0) {
@@ -410,43 +487,98 @@ public class HL7Location {
             return repeatingFieldIndexInSegment;
         }
     }
+
+    /**
+     * Gets the Field index
+     * @return index of field
+     */
     public int getFieldIndex() {
         return fieldIndexInRepeatingField;
     }
+    /**
+     * Gets the RepeatingField index
+     * @return index of repeatingfield
+     */
     public int getRepeatingFieldIndex() {
         return repeatingFieldIndexInSegment;
     }
+
+    /**
+     * Gets the component index
+     * @return index of component
+     */
     public int getComponentIndex() {
         return componentIndexInField;
     }
+
+    /**
+     * Gets the component HL7 position (index+1)
+     * @return position of component
+     */
     public int getComponentHL7Position() {
         return componentIndexInField+1;
     }
+
+    /**
+     * Gets the subcomponent index
+     * @return index of subcomponent
+     */
     public int getSubcomponentIndex() {
         return subcomponentIndexInComponent;
     }
+
+    /**
+     * Gets the subcomponent HL7 position (index+1)
+     * @return position of subcomponent
+     */
     public int getSubcomponentHL7Position() {
         return subcomponentIndexInComponent+1;
     }
+
+    /**
+     * Flag to determine if the segment index in this object is implied
+     * @return true if segment index is implied, not explicity specified
+     */
     public boolean isSegmentIndexImplied() {
         return isSegmentIndexImplied;
     }
+
+    /**
+     * Flag to determine if the field index in this object is implied
+     * @return true if field index is implied, not explicity specified
+     */
     public boolean isFieldIndexImplied() {
         return isFieldIndexImplied;
     }
 
+    /**
+     * Switch to determine if this HL7Location has a segment specified
+     * @return true if data was specified
+     */
     public boolean hasSegment() {
         return hasSegment;
     }
 
+    /**
+     * Switch to determine if this HL7Location has a field specified
+     * @return true if data was specified
+     */
     public boolean hasField() {
         return hasField;
     }
 
+    /**
+     * Switch to determine if this HL7Location has a component specified
+     * @return true if data was specified
+     */
     public boolean hasComponent() {
         return hasComponent;
     }
 
+    /**
+     * Switch to determine if this HL7Location has a subcomponent specified
+     * @return true if data was specified
+     */
     public boolean hasSubcomponent() {
         return hasSubcomponent;
     }

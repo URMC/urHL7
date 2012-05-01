@@ -28,7 +28,8 @@ import java.util.*;
 
 
 /**
- * Helper class that has methods that help move around the underlying data structure.
+ * Helper class that has methods that help traverse around the underlying data structure.
+ * This is the most simple way to access data quickly and easily.
  * @author dmorgan
  */
 public class HL7StructureHelper {
@@ -44,7 +45,7 @@ public class HL7StructureHelper {
     private Map<HL7Location, DataField> _CACHE = null;
     //private LinkedList<HL7Location> _KEYCACHE = null;
 
-    int cacheingDone = 0;
+    private int cacheingDone = 0;
 
     /**
      * Create a HL7StructureHelper that is bound to the provided HL7Structure
@@ -129,20 +130,17 @@ public class HL7StructureHelper {
                 refreshCache();
             }
 
+
+            if (loc.isFullyQualified()) {
+                return _CACHE.containsKey(loc);
+            }
+
             for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
                 if (entry.getKey().matches(loc)) {
                     return true;
                 }
             }
 
-            /*if( ! STRICT_LOCATION_INTERPRETATION ) {
-                HL7Location fuzzy = HL7Location.parse(loc.getHL7Location() + ".1");
-                for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
-                    if (entry.getKey().matches(fuzzy)) {
-                        return true;
-                    }
-                }
-            }*/
         }
         return false;
     }
@@ -210,7 +208,7 @@ public class HL7StructureHelper {
 
     /**
      * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
-     * it will return an EmptyField with no data.
+     * it will return an NullField with no data.
      * @param descriptor String description of location
      * @return the first DataField that matches the descriptor
      */
@@ -220,7 +218,7 @@ public class HL7StructureHelper {
 
     /**
      * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
-     * it will return an EmptyField with no data.
+     * it will return an NullField with no data.
      * @param loc the HL7Location of the data field
      * @return the first DataField that matches the descriptor
      */
@@ -229,23 +227,19 @@ public class HL7StructureHelper {
             refreshCache();
         }
 
+
+        if (loc.isFullyQualified()) {
+            DataField possible = _CACHE.get(loc);
+            if (possible != null) {
+                return possible;
+            }
+        }
+
         for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
             if (entry.getKey().matches(loc)) {
                 return entry.getValue();
             }
         }
-
-        //System.out.println(loc.getHL7Location());
-        /*if( ! STRICT_LOCATION_INTERPRETATION && loc.hasField()) {
-            HL7Location fuzzy = HL7Location.parse(loc.getHL7Location() + ".1");
-            for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
-                if (entry.getKey().matches(fuzzy)) {
-                    return (DataField)entry.getValue().getParent();
-                    //return entry.getValue()
-                }
-            }
-        }*/
-
         
         return new NullField();
     }
@@ -282,69 +276,6 @@ public class HL7StructureHelper {
     }
 
 
-
-
-    /**
-     * This method is magic, very buggy, but also very useful. Use with care.
-     * @param descriptor
-     * @return
-     */
-    /*public List<List<DataField>> getRelated(String descriptor) {
-        String[] eles = StringHelper.explode(descriptor, ",");
-        List<HL7Location> locs = new ArrayList<HL7Location>();
-        for(String ele : eles) {
-            locs.add(HL7Location.parse(ele.trim()));
-        }
-        return getRelated(locs);
-    }*/
-
-    /**
-     * This method is magic, very buggy, but also very useful. Use with care.
-     * @param locs
-     * @return
-     */
-    /*public List<List<DataField>> getRelated(List<HL7Location> locs) {
-        ArrayList<HL7Location> bucketHeader = new ArrayList<HL7Location>();
-        for(HL7Location loc : locs) {
-            bucketHeader.add(HL7Location.parse(loc.getShortHL7Location()));
-        }
-
-        System.out.println(bucketHeader);
-
-        Iterator<Map.Entry<HL7Location, DataField>> it = _CACHE.entrySet().iterator();
-
-        Map<HL7Location, DataField> lastData = new HashMap<HL7Location, DataField>();
-
-        List<Map<HL7Location, DataField>> dset = new ArrayList<Map<HL7Location, DataField>>();
-        while(it.hasNext()) {
-            Map.Entry<HL7Location, DataField> entry = it.next();
-            for(int i=0; i<bucketHeader.size(); i++) {
-                if (entry.getKey().matches(bucketHeader.get(i))) {
-                    //System.out.println(bucketHeader.get(i).getHL7Location() + " / " + entry.getKey().getHL7Location() + " : " + entry.getValue());
-                    lastData.put(bucketHeader.get(i), entry.getValue());
-                    if (i == (bucketHeader.size()-1)) {
-                        //System.out.println(lastData);
-                        //bucket.put(lastData);
-                        Map<HL7Location, DataField> newRecord = new HashMap<HL7Location, DataField>();
-                        newRecord.putAll(lastData);
-                        dset.add(newRecord);
-                    }
-                }
-            }
-        }
-
-
-        //System.out.println(dset);
-
-        for(Map<HL7Location, DataField> record : dset) {
-            //System.out.println(record);
-            System.out.println(record.get(HL7Location.parse("PID-3")) + " obr: " + record.get(HL7Location.parse("OBR-2")) + " with " + record.get(HL7Location.parse("OBX-5")));
-        }
-
-
-        return null;
-    }*/
-
     private void refreshCache() {
         cacheingDone++;
         LinkedHashMap<HL7Location, DataField> table = new LinkedHashMap<HL7Location, DataField>();
@@ -377,7 +308,7 @@ public class HL7StructureHelper {
                             HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, -1, -1);
                             table.put(loc, field);
                         //} else {
-                        if (!field.isBaseField() ){
+                        if (!field.isBaseField() ){ //
                             List<HL7FieldComponent> fieldCompList = field.getFieldComponents();
                             for(int fcIdx=0; fcIdx<fieldCompList.size(); fcIdx++) {
                                 HL7FieldComponent fieldcomp = fieldCompList.get(fcIdx);
@@ -385,11 +316,11 @@ public class HL7StructureHelper {
                                     HL7Location locfc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, -1);
                                     table.put(locfc, fieldcomp);
                                 //} else {
-                                if(!fieldcomp.isBaseField() ){
+                                if(!fieldcomp.isBaseField() ){ //
                                     List<HL7FieldSubcomponent> fieldSubcompList = fieldcomp.getFieldSubcomponents();
                                     for(int fscIdx=0; fscIdx<fieldSubcompList.size(); fscIdx++) {
                                         HL7FieldSubcomponent fieldsub = fieldSubcompList.get(fscIdx);
-                                        if(fieldsub.isBaseField() ){
+                                        if(fieldsub.isBaseField() ){ 
                                             HL7Location locsc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, fscIdx);
                                             table.put(locsc, fieldsub);
                                         }
@@ -406,8 +337,8 @@ public class HL7StructureHelper {
         structure.needsRecache = false;
     }
 
-    public void printCacheUsage() {
-        //System.out.println("Cache run: " + cacheingDone);
-    }
+    //public void printCacheUsage() {
+    //    //System.out.println("Cache run: " + cacheingDone);
+    //}
 
 }
