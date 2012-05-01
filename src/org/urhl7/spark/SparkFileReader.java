@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -168,9 +168,9 @@ public class SparkFileReader {
 
             sb.append(buf, 0, byteIn);
 
-            if (sb.indexOf(delimiter) != -1) {
+            while (sb.indexOf(delimiter) != -1) {
                 message = sb.substring(0, sb.indexOf(delimiter)).toString();
-                listener.messageReceived(Igor.structure(new String(message)));
+                success = success && listener.messageReceived(Igor.structure(new String(message)));
                 if (message.length()+delimiter.length() <= sb.length()) {
                     sb.delete(0, message.length()+delimiter.length());
                 } else {

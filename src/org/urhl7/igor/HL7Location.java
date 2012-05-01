@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -176,62 +176,11 @@ public class HL7Location {
             
         }
         return matchSoFar;
-
-            /* if (areWeEqual) {
-                        areWeEqual = areWeEqual && (this.fieldIndexInRepeatingField == other.fieldIndexInRepeatingField);
-                        areWeEqual = areWeEqual && (this.isFieldIndexImplied() == other.isFieldIndexImplied());
-                        if (areWeEqual) {
-                            areWeEqual = areWeEqual && (this.componentIndexInField == other.componentIndexInField);
-                            if (areWeEqual) {
-                                areWeEqual = areWeEqual && (this.subcomponentIndexInComponent == other.subcomponentIndexInComponent);
-                            }
-                        }
-                    }
-                }
-            }
-            
-            if (loc.repeatingFieldIndexInSegment == this.repeatingFieldIndexInSegment) {
-                //if (loc.isFieldIndexImplied && (loc.) ) {
-                    
-                //}
-            }
-            
-            
-            if (loc.isFieldIndexImplied() && loc.isSegmentIndexImplied()) {
-                if(loc.getShortHL7Location().equals(this.getShortHL7Location())) {
-                    return true;
-                }
-            } else {
-                if(!loc.isFieldIndexImplied() && loc.isSegmentIndexImplied()) {
-                    if(loc.getShortHL7Location().equals(this.getShortHL7Location()) && (loc.getFieldIndex() == this.getFieldIndex())) {
-                        return true;
-                    }
-                }
-                if(!loc.isSegmentIndexImplied() && loc.isFieldIndexImplied()) {
-                    if(loc.getShortHL7Location().equals(this.getShortHL7Location()) && (loc.getSegmentIndex() == this.getSegmentIndex())) {
-                        return true;
-                    }
-                }
-
-                if(!loc.isSegmentIndexImplied() && !loc.isFieldIndexImplied()) {
-                    if(loc.getShortHL7Location().equals(this.getShortHL7Location()) && (loc.getSegmentIndex() == this.getSegmentIndex()) && (loc.getFieldIndex() == this.getFieldIndex())) {
-                        return true;
-                    }
-                }
-            }
-
-            //if (this.equals(loc)) {
-            //    return true;
-            //}
-        }
-        return false;*/
     }
-    //public boolean equals(HL7Location loc) {
-    //    return false;
-    //}
+
 
     public static HL7Location parse(String location) {
-        //throw IllegalArgumentException("Invalid HL7 location: " + location);
+
         try {
             HL7Location loc = new HL7Location();
             if(location.contains("-")) {

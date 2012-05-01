@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
      */
     public void setParent(HL7Field parent) {
         this.parent = parent;
+        setDirty();
     }
 
     /**
@@ -137,7 +138,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
             baseField = true;
         }
 
-        parent.getParent().getParent().getParent().needsRecache = true;
+        setDirty();
     }
 
     /**
@@ -169,6 +170,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
         this.data = HL7Escape.escape(delims, data);
         if (subcomponents != null) {
             subcomponents.clear();
+            setDirty();
         }
     }
 
@@ -225,6 +227,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
         fieldcomp.changeDelims(getDelims());
         boolean suc =  subcomponents.add(fieldcomp);
         this.data = marshal();
+        setDirty();
         return suc;
     }
 
@@ -239,6 +242,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
         fieldsubcomp.changeDelims(getDelims());
         subcomponents.add(index, fieldsubcomp);
         this.data = marshal();
+        setDirty();
     }
 
     /**
@@ -251,6 +255,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
         f.setParent(null);
         if (subcomponents.size() == 0) { baseField = true; }
         this.data = marshal();
+        setDirty();
         return f;
     }
 
@@ -264,6 +269,7 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
         fieldcomp.setParent(null);
         if (subcomponents.size() == 0) { baseField = true; }
         this.data = marshal();
+        setDirty();
         return s;
     }
 
@@ -278,9 +284,15 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
         fieldsubcomp.changeDelims(getDelims());
         HL7FieldSubcomponent old = subcomponents.set(pos, fieldsubcomp);
         old.setParent(null);
-        this.data = marshal();    
+        this.data = marshal();
+        setDirty();
         return old;
     }
 
+    private void setDirty() {
+        if (parent != null && parent.getParent() != null && parent.getParent().getParent() != null && parent.getParent().getParent().getParent() != null) {
+            parent.getParent().getParent().getParent().needsRecache = true;
+        }
+    }
 
 }

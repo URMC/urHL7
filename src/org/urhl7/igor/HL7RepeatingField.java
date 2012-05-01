@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -78,10 +78,13 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
      * @return success of the addition
      */
     public boolean addField(HL7Field field) {
+
         field.setParent(this);
         field.changeDelims(getDelims());
         boolean suc =  fields.add(field);
         //this.data = marshal();
+
+        setDirty();
         return suc;
     }
 
@@ -91,10 +94,13 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
      * @param field the field to add
      */
     public void addField(int index, HL7Field field) {
+
+
         field.setParent(this);
         field.changeDelims(getDelims());
         fields.add(index, field);
         //this.data = marshal();
+        setDirty();
     }
 
     /**
@@ -105,6 +111,9 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
     public HL7Field removeField(int pos) {
         HL7Field f = fields.remove(pos);
         f.setParent(null);
+
+        setDirty();
+
         return f;
     }
 
@@ -114,8 +123,13 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
      * @return success of the removal
      */
     public boolean removeField(HL7Field field) {
+
+
         boolean s = fields.remove(field);
         field.setParent(null);
+
+        setDirty();
+
         return s;
     }
 
@@ -130,6 +144,9 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
         field.changeDelims(getDelims());
         HL7Field old = fields.set(pos, field);
         old.setParent(null);
+
+        setDirty();
+
         return old;
     }
 
@@ -162,7 +179,8 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
             fields.add(f);
         }
 
-        parent.getParent().needsRecache = true;
+        setDirty();
+        
     }
 
     /**
@@ -187,6 +205,7 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
      */
     public void setParent(HL7Segment parent) {
         this.parent = parent;
+        setDirty();
     }
 
     /**
@@ -223,6 +242,12 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
     @Override
     public String toString() {
         return marshal();
+    }
+
+    private void setDirty() {
+        if (parent != null && parent.getParent() != null) {
+            parent.getParent().needsRecache = true;
+        }
     }
 
 /*

@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,8 @@ public class HL7FieldSubcomponent implements DataField, DelimitedStructure {
         this.data = data;
         baseField = true;
 
-        parent.getParent().getParent().getParent().getParent().needsRecache = true;
+        setDirty();
+
     }
 
     /**
@@ -143,5 +144,14 @@ public class HL7FieldSubcomponent implements DataField, DelimitedStructure {
      */
     public boolean isBaseField() {
         return baseField;
+    }
+
+    private void setDirty() {
+        if (parent != null && parent.getParent() != null
+                           && parent.getParent().getParent() != null && parent.getParent().getParent().getParent() != null
+                           && parent.getParent().getParent().getParent().getParent() != null) {
+
+            parent.getParent().getParent().getParent().getParent().needsRecache = true;
+        }
     }
 }

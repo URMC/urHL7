@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,8 @@
 package org.urhl7.igor;
 
 import java.util.*;
-import org.urhl7.utils.*;
+
+
 /**
  * Helper class that has methods that help move around the underlying data structure.
  * @author dmorgan
@@ -33,11 +34,12 @@ import org.urhl7.utils.*;
 public class HL7StructureHelper {
     private HL7Structure structure;
 
-    private boolean NEVER_RETURN_NULL = true;
-    private boolean ROLL_UP_NON_EXISTANT_DOT_ONE = true;
+    //private boolean NEVER_RETURN_NULL = true;
+    //private boolean ROLL_UP_NON_EXISTANT_DOT_ONE = true;
+    //private boolean STRICT_LOCATION_INTERPRETATION = false;
 
-    public final static int SETTING_NEVER_RETURN_NULL = 1;
-    public final static int SETTING_ROLL_UP_DOT_ONE = 2;
+    //public final static int SETTING_NEVER_RETURN_NULL = 1;
+    //public final static int SETTING_ROLL_UP_DOT_ONE = 2;
 
     private Map<HL7Location, DataField> _CACHE = null;
     //private LinkedList<HL7Location> _KEYCACHE = null;
@@ -62,10 +64,10 @@ public class HL7StructureHelper {
      */
     public Object getSetting(int settingIdentifier) {
         switch (settingIdentifier) {
-            case SETTING_NEVER_RETURN_NULL:
-                return NEVER_RETURN_NULL;
-            case SETTING_ROLL_UP_DOT_ONE:
-                return ROLL_UP_NON_EXISTANT_DOT_ONE;
+            //case SETTING_NEVER_RETURN_NULL:
+            //    return NEVER_RETURN_NULL;
+            //case SETTING_ROLL_UP_DOT_ONE:
+            //    return ROLL_UP_NON_EXISTANT_DOT_ONE;
             default:
                 throw new IllegalArgumentException(settingIdentifier + " is not a valid setting identifier.");
         }
@@ -90,12 +92,12 @@ public class HL7StructureHelper {
      */
     public void setSetting(int settingIdentifier, boolean flag) {
         switch (settingIdentifier) {
-            case SETTING_NEVER_RETURN_NULL:
-                NEVER_RETURN_NULL = flag;
-                break;
-            case SETTING_ROLL_UP_DOT_ONE:
-                ROLL_UP_NON_EXISTANT_DOT_ONE = flag;
-                break;
+            //case SETTING_NEVER_RETURN_NULL:
+            //    NEVER_RETURN_NULL = flag;
+            //    break;
+            //case SETTING_ROLL_UP_DOT_ONE:
+            //    ROLL_UP_NON_EXISTANT_DOT_ONE = flag;
+            //    break;
             default:
                 throw new IllegalArgumentException("Setting ID (" + settingIdentifier + ") is invalid or does not accept a boolean parameter.");
         }
@@ -123,173 +125,26 @@ public class HL7StructureHelper {
                 return true;
             }
         } else {
-            if (!(get(loc) instanceof EmptyField)) {
-                return true;
+            if (structure.needsRecache) {
+                refreshCache();
             }
-        }
-        return false;
-    }
 
-    /**
-     * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
-     * it will return an EmptyField with no data.
-     * @param descriptor String description of location
-     * @return the first DataField that matches the descriptor
-     */
-    public DataField get(String descriptor) {
-        return get(HL7Location.parse(descriptor), NEVER_RETURN_NULL);
-    }
-
-    /**
-     * Retrieves the first data field at a specified location.
-     * @param descriptor String description of location
-     * @param neverReturnNull flag to return a null object on a not found object (false) or an EmptyField (true)
-     * @return the first DataField that matches the descriptor
-     */
-    public DataField get(String descriptor, boolean neverReturnNull) {
-        return get(HL7Location.parse(descriptor), neverReturnNull);
-    }
-    /**
-     * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
-     * it will return an EmptyField with no data.
-     * @param loc the HL7Location of the data field
-     * @return the first DataField that matches the descriptor
-     */
-    public DataField get(HL7Location loc) {
-        return get(loc, NEVER_RETURN_NULL);
-    }
-
-    /**
-     * Retrieves the first data field at a specified location.
-     * @param loc the HL7Location of the data field
-     * @param neverReturnNull flag to return a null object on a not found object (false) or an EmptyField (true)
-     * @return the first DataField that matches the descriptor
-     */
-    public DataField get(HL7Location loc, boolean neverReturnNull) {
-        try {
-            if (loc.hasSegment() && loc.hasField()) {
-                for(HL7Segment segment : getAllSegments(loc)) {
-                    try {
-                        List<HL7Field> fieldsThatMatch = new ArrayList<HL7Field>();
-                        if (loc.isFieldIndexImplied()) {
-                            fieldsThatMatch.addAll(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields());
-                        } else {
-                            fieldsThatMatch.add(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()));
-                        }
-
-
-                        if(loc.hasSubcomponent()) {
-                            for(HL7Field f : fieldsThatMatch) {
-                                try {
-                                    return f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex());
-                                } catch (Exception e) { /*e.printStackTrace();*/ }
-                            }
-                        } else if (loc.hasComponent()) {
-                            for(HL7Field f : fieldsThatMatch) {
-                                if (ROLL_UP_NON_EXISTANT_DOT_ONE && loc.getComponentHL7Position() == 1 && f.isBaseField()) {
-                                    return f;
-                                } else {
-                                    try {
-                                        return f.getFieldComponent(loc.getComponentIndex());
-                                    } catch (Exception e) { /*e.printStackTrace();*/ }
-                                }
-                            }
-                        } else {
-                            try {
-                                return fieldsThatMatch.get(0);
-                            } catch (Exception e) { /*e.printStackTrace();*/ }
-                        }
-                    } catch (Exception e) { /*e.printStackTrace();*/ }
+            for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
+                if (entry.getKey().matches(loc)) {
+                    return true;
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (neverReturnNull) {
-            return new EmptyField();
-        } else {
-            return null;
-        }
-    }
 
-    /**
-     * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
-     * does not exist, rather than erroring, it will return an empty list.
-     * @param descriptor String description of location
-     * @return all DataField object that match the descriptor, or an empty list if none do
-     */
-    public List<DataField> getAll(String descriptor) {
-        return getAll(HL7Location.parse(descriptor));
-    }
-
-    /**
-     * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
-     * does not exist, rather than erroring, it will return an empty list.
-     * @param loc the HL7Location of the data field
-     * @return all DataField object that match the location, or an empty list if none do
-     */
-    public List<DataField> getAll(HL7Location loc) {
-        ArrayList<DataField> retList = new ArrayList<DataField>();
-        if (loc.hasSegment() && loc.hasField()) {
-            for(HL7Segment segment : getAllSegments(loc)) {
-                try {
-                    List<HL7Field> fieldsThatMatch = new ArrayList<HL7Field>();
-                    if (loc.isFieldIndexImplied()) {
-                        //fieldsThatMatch.addAll(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields());
-                        for(HL7Field field : segment.getRepeatingField(loc.getRepeatingFieldIndex()).getFields()) {//
-                            if (!fieldsThatMatch.contains(field)){
-                                fieldsThatMatch.add(field);
-                            }
-                        }//
-                    } else {
-                        if (!fieldsThatMatch.contains(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()))) {//
-                            fieldsThatMatch.add(segment.getRepeatingField(loc.getRepeatingFieldIndex()).getField(loc.getFieldIndex()));
-                        }//
+            /*if( ! STRICT_LOCATION_INTERPRETATION ) {
+                HL7Location fuzzy = HL7Location.parse(loc.getHL7Location() + ".1");
+                for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
+                    if (entry.getKey().matches(fuzzy)) {
+                        return true;
                     }
-
-                    if(loc.hasSubcomponent()) {
-                        for(HL7Field f : fieldsThatMatch) {
-                            try {
-                                if(!retList.contains(f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex()))) {//
-                                    retList.add(f.getFieldComponent(loc.getComponentIndex()).getFieldSubcomponent(loc.getSubcomponentIndex()));
-                                }//
-                            } catch (Exception e) { /*e.printStackTrace();*/ }
-                        }
-                    } else if (loc.hasComponent()) {
-                        for(HL7Field f : fieldsThatMatch) {
-                            if (ROLL_UP_NON_EXISTANT_DOT_ONE && loc.getComponentHL7Position() == 1 && f.isBaseField()) {
-                                if (!retList.contains(f)) {//
-                                    retList.add(f);
-                                }//
-                            } else {
-                                try {
-                                    if(!retList.contains(f.getFieldComponent(loc.getComponentIndex()))) {
-                                        retList.add(f.getFieldComponent(loc.getComponentIndex()));
-                                    }
-                                } catch (Exception e) { /*e.printStackTrace();*/ }
-                            }
-
-                            try {
-                                if (!retList.contains(f.getFieldComponent(loc.getComponentIndex()))) {
-                                    retList.add(f.getFieldComponent(loc.getComponentIndex()));
-                                }
-                            } catch (Exception e) { /*e.printStackTrace();*/ }
-                        }
-                    } else {
-                        try {
-                            for(HL7Field fi : fieldsThatMatch) {
-                                if(!retList.contains(fi)) {
-                                    retList.add(fi);
-                                }
-                            }
-                            //retList.addAll(fieldsThatMatch);
-                            
-                        } catch (Exception e) { /*e.printStackTrace();*/ }
-                    }
-                } catch (Exception e) { /*e.printStackTrace();*/ }
-            }
+                }
+            }*/
         }
-        return retList;
+        return false;
     }
 
     /**
@@ -353,12 +208,23 @@ public class HL7StructureHelper {
         return segments;
     }
 
-
-    public DataField nGet(String descriptor) {
-        return nGet(HL7Location.parse(descriptor));
+    /**
+     * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
+     * it will return an EmptyField with no data.
+     * @param descriptor String description of location
+     * @return the first DataField that matches the descriptor
+     */
+    public DataField get(String descriptor) {
+        return get(HL7Location.parse(descriptor));
     }
 
-    public DataField nGet(HL7Location loc) {
+    /**
+     * Retrieves the first data field at a specified location. If the data field does not exist, rather than erroring,
+     * it will return an EmptyField with no data.
+     * @param loc the HL7Location of the data field
+     * @return the first DataField that matches the descriptor
+     */
+    public DataField get(HL7Location loc) {
         if (structure.needsRecache) {
             refreshCache();
         }
@@ -369,11 +235,38 @@ public class HL7StructureHelper {
             }
         }
 
+        //System.out.println(loc.getHL7Location());
+        /*if( ! STRICT_LOCATION_INTERPRETATION && loc.hasField()) {
+            HL7Location fuzzy = HL7Location.parse(loc.getHL7Location() + ".1");
+            for (Map.Entry<HL7Location, DataField> entry : _CACHE.entrySet()) {
+                if (entry.getKey().matches(fuzzy)) {
+                    return (DataField)entry.getValue().getParent();
+                    //return entry.getValue()
+                }
+            }
+        }*/
 
-        return new EmptyField();
+        
+        return new NullField();
     }
 
-    public List<DataField> nGetAll(HL7Location loc) {
+    /**
+     * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
+     * does not exist, rather than erroring, it will return an empty list.
+     * @param descriptor String description of location
+     * @return all DataField object that match the descriptor, or an empty list if none do
+     */
+    public List<DataField> getAll(String descriptor) {
+        return getAll(HL7Location.parse(descriptor));
+    }
+
+    /**
+     * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
+     * does not exist, rather than erroring, it will return an empty list.
+     * @param loc the HL7Location of the data field
+     * @return all DataField object that match the location, or an empty list if none do
+     */
+    public List<DataField> getAll(HL7Location loc) {
         if (structure.needsRecache) {
             refreshCache();
         }
@@ -480,23 +373,25 @@ public class HL7StructureHelper {
                     for(int fIdx=0; fIdx<fieldList.size(); fIdx++){
                         HL7Field field = fieldList.get(fIdx);
 
-                        if (field.isBaseField() ){
+                        //if (field.isBaseField() ){
                             HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, -1, -1);
                             table.put(loc, field);
-                        } else {
+                        //} else {
+                        if (!field.isBaseField() ){
                             List<HL7FieldComponent> fieldCompList = field.getFieldComponents();
                             for(int fcIdx=0; fcIdx<fieldCompList.size(); fcIdx++) {
                                 HL7FieldComponent fieldcomp = fieldCompList.get(fcIdx);
-                                if(fieldcomp.isBaseField() ){
-                                    HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, -1);
-                                    table.put(loc, fieldcomp);
-                                } else {
+                                //if(fieldcomp.isBaseField() ){
+                                    HL7Location locfc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, -1);
+                                    table.put(locfc, fieldcomp);
+                                //} else {
+                                if(!fieldcomp.isBaseField() ){
                                     List<HL7FieldSubcomponent> fieldSubcompList = fieldcomp.getFieldSubcomponents();
                                     for(int fscIdx=0; fscIdx<fieldSubcompList.size(); fscIdx++) {
                                         HL7FieldSubcomponent fieldsub = fieldSubcompList.get(fscIdx);
                                         if(fieldsub.isBaseField() ){
-                                            HL7Location loc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, fscIdx);
-                                            table.put(loc, fieldsub);
+                                            HL7Location locsc = new HL7Location(segmentName, segmentIndex, rfIdx, fIdx, fcIdx, fscIdx);
+                                            table.put(locsc, fieldsub);
                                         }
                                     }
                                 }

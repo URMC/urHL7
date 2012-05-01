@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011 David Morgan, University of Rochester Medical Center
+ * Copyright (c) 2012 David Morgan, University of Rochester Medical Center
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,13 +30,13 @@ package org.urhl7.igor;
  * needs to exist, but doesn't for some reason (usually an error condition beind supressed).
  * @author dmorgan
  */
-public class EmptyField implements DataField {
+public class NullField implements DataField {
     private String data = "";
 
     /**
      * Creates a new EmptyField that has no data, and no reference attachments.
      */
-    public EmptyField() {}
+    public NullField() {}
 
     public String getData() {
         return data;
@@ -52,5 +52,13 @@ public class EmptyField implements DataField {
 
     public void unmarshal(String data) {
         this.data = data;
+    }
+
+    public String toString() {
+        return "EmptyField*" + marshal();
+    }
+
+    public Object getParent() {
+        return null;
     }
 }
