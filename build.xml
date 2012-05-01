@@ -11,6 +11,28 @@
     <description>Builds, tests, and runs the project urhl7.</description>
     <import file="nbproject/build-impl.xml"/>
     <import file="nbproject/profiler-build-impl.xml"/>
+
+
+    <target name="-pre-init">
+       <property name="project.name" value="urHL7" />
+       <property name="version.num" value="1.2.0" />
+       <tstamp>
+          <format property="NOW" pattern="yyyy-MM-dd HH:mm:ss z" />
+       </tstamp>
+
+       <manifest file="MANIFEST.MF">
+          <attribute name="Bundle-Name" value="${project.name}" />
+          <attribute name="Bundle-Version" value="${version.num}" />
+          <attribute name="Bundle-Date" value="${NOW}" />
+          <!--<attribute name="Bundle-Revision" value="${svna.version}" />-->
+          <attribute name="Implementation-Title" value="${project.name}" />
+          <attribute name="Implementation-Version" value="${version.num}" />
+          <attribute name="Implementation-URL" value="http://urhl7.org" />
+       </manifest>
+
+    </target>
+
+
     <!--
 
     There exist several targets which are by default empty and which can be 
