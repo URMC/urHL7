@@ -28,13 +28,14 @@ import org.urhl7.igor.HL7Structure;
 import org.urhl7.igor.Igor;
 import java.util.*;
 import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 /**
  *
  * @author David Morgan
  */
-public class LocationHandling {
-    public LocationHandling() {}
+public class LocationHandlingTest {
+    public LocationHandlingTest() {}
 
     @Test 
     public void testTerser() {
@@ -84,17 +85,6 @@ public class LocationHandling {
             pos++;
         }
 
-
-        //System.out.println("testTerser() passed? : " + finMsg.equals(struct.marshal()));
-        if (!finMsg.equals(struct.marshal())) {
-            System.out.println(finMsg);
-            System.out.println("");
-            System.out.println(struct.marshal());
-            System.out.println("");
-            System.out.println("");
-
-            throw new RuntimeException("Failed Test");
-        }
-
+        assertEquals(struct.marshal(), finMsg);
     }
 }

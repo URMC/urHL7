@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="urHL7TestSuite" verbose="10">
+    <test name="LockerDocumentTests"> <!-- these are good tests -->
+        <parameter name="TestString" value="DEFAULT"/>
+        <classes>
+            <class name="org.urhl7.igor.LocationHandlingTest" />
+            <class name="org.urhl7.igor.MarshalStringsTest" />
+            <class name="org.urhl7.igor.DelimiterTest" />
+        </classes>
+    </test>
+</suite>
+
