@@ -2,13 +2,15 @@ package org.urhl7.igor;
 
 import org.urhl7.igor.HL7Structure;
 import org.urhl7.igor.Igor;
+import org.testng.annotations.Test;
 
 /**
  *
  * @author dmorgan
  */
 public class DeviceChangeTester {
-    @org.junit.Test public void testDevChange() {
+    @Test 
+    public void testDevChange() {
         String testMsg = "MSH|^~\\&|CPN|HISOut|||||ORU^R01|QS1104192313801|P|2.4|1||||||||\r" +
                 "PID|||TEST11-5-10||TEST^VS^SMH1|||||||||||||||||||||||||||||||||\r" +
                 "PV1|||3-14^Triage C|||||||||||||||||||||||||||||||||||||||||||||||||\r" +

@@ -26,13 +26,15 @@ package org.urhl7.igor;
 
 import org.urhl7.igor.HL7Structure;
 import org.urhl7.igor.Igor;
+import org.testng.annotations.Test;
 
 /**
  *
  * @author David Morgan
  */
 public class DelimiterTesting {
-    @org.junit.Test public void testTerser() {
+    @Test 
+    public void testTerser() {
 
 
         String origMsg = "MSH|^~\\&|FLOWCAST|IDX|URMC\\S\\12|ENGINE|201001111101||ADT^A13|61234_22333_DC|P|2.3||||||ASCII|\r"+

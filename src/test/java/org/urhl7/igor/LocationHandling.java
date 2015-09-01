@@ -27,6 +27,7 @@ package org.urhl7.igor;
 import org.urhl7.igor.HL7Structure;
 import org.urhl7.igor.Igor;
 import java.util.*;
+import org.testng.annotations.Test;
 
 /**
  *
@@ -35,7 +36,8 @@ import java.util.*;
 public class LocationHandling {
     public LocationHandling() {}
 
-    @org.junit.Test public void testTerser() {
+    @Test 
+    public void testTerser() {
         String origMsg = "MSH|^~\\&|FLOWCAST|IDX|URMC|ENGINE|201001111101||ADT^A13|61234_22333_DC|P|2.3||||||ASCII|\r"+
            "PID|1||1133445^^^IDX^MRN||MORGAN^JESSICA^^^^||19871012|F||WH|123 MILL RD^^ROCHESTER^NY^14526^^^^||(585)555-5555||||||000-11-0000||||||||N|||N|\r"+
            "NK1|1|MORGAN^BILL^^^^|SP||(315)555-5555||NK&&KID||||\r"+
