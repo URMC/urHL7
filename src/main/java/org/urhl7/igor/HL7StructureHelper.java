@@ -34,17 +34,7 @@ import java.util.*;
  */
 public class HL7StructureHelper {
     private HL7Structure structure;
-
-    //private boolean NEVER_RETURN_NULL = true;
-    //private boolean ROLL_UP_NON_EXISTANT_DOT_ONE = true;
-    //private boolean STRICT_LOCATION_INTERPRETATION = false;
-
-    //public final static int SETTING_NEVER_RETURN_NULL = 1;
-    //public final static int SETTING_ROLL_UP_DOT_ONE = 2;
-
     private Map<HL7Location, DataField> _CACHE = null;
-    //private LinkedList<HL7Location> _KEYCACHE = null;
-
     private int cacheingDone = 0;
 
     /**
@@ -58,51 +48,6 @@ public class HL7StructureHelper {
         refreshCache();
     }
 
-    /**
-     * Gets the current value of the setting defined by settingIdentifier
-     * @param settingIdentifier the setting identifier to get
-     * @return the value of the setting
-     */
-    public Object getSetting(int settingIdentifier) {
-        switch (settingIdentifier) {
-            //case SETTING_NEVER_RETURN_NULL:
-            //    return NEVER_RETURN_NULL;
-            //case SETTING_ROLL_UP_DOT_ONE:
-            //    return ROLL_UP_NON_EXISTANT_DOT_ONE;
-            default:
-                throw new IllegalArgumentException(settingIdentifier + " is not a valid setting identifier.");
-        }
-    }
-
-    /**
-     * Sets the setting defined by settingIdentifier to value
-     * @param settingIdentifier setting identifier (static variables of this class)
-     * @param value numeric value to set this setting to
-     */
-    public void setSetting(int settingIdentifier, int value) {
-        switch (settingIdentifier) {
-            default:
-                throw new IllegalArgumentException("Setting ID (" + settingIdentifier + ") is in invalid, or does not accept a integer parameter.");
-        }
-    }
-
-    /**
-     * Sets the setting defined by settingIdentifier to flag
-     * @param settingIdentifier setting identifier (static variables of this class)
-     * @param flag enable or disable the setting
-     */
-    public void setSetting(int settingIdentifier, boolean flag) {
-        switch (settingIdentifier) {
-            //case SETTING_NEVER_RETURN_NULL:
-            //    NEVER_RETURN_NULL = flag;
-            //    break;
-            //case SETTING_ROLL_UP_DOT_ONE:
-            //    ROLL_UP_NON_EXISTANT_DOT_ONE = flag;
-            //    break;
-            default:
-                throw new IllegalArgumentException("Setting ID (" + settingIdentifier + ") is invalid or does not accept a boolean parameter.");
-        }
-    }
 
     /**
      * Determine if this structure has a particular data field or segment
