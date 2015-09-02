@@ -70,6 +70,91 @@ public class HL7Structure implements GenericStructure, DelimitedStructure {
     }
 
     /**
+     * Shorthand alias for {@link HL7StructureHelper#get(String) helper().get()} method. Retrieves the first data field at a specified location.
+     * If the data field does not exist, rather than erroring, it will return an NullField with no data.
+     * @param descriptor String description of location
+     * @return the first DataField that matches the descriptor
+     */
+     public DataField helper(String descriptor) {
+         return helper().get(descriptor);
+     }
+
+    /**
+     * Shorthand alias for {@link HL7StructureHelper#get(HL7Location) helper().get()} method. Retrieves the first data field at a specified location.
+     * If the data field does not exist, rather than erroring, it will return an NullField with no data.
+     * @param loc the HL7Location of the data field
+     * @return the first DataField that matches the descriptor
+     */
+     public DataField helper(HL7Location loc) {
+         return helper().get(loc);
+     }
+
+    /**
+     * Retrieves the first data field at a specified location.
+     * If the data field does not exist, rather than erroring, it will return an NullField with no data.
+     * Shorthand alias for {@link HL7StructureHelper#get(String) helper().get()} method.
+     * @param descriptor String description of location
+     * @return the first DataField that matches the descriptor
+     */
+     public DataField get(String descriptor) {
+         return helper().get(descriptor);
+     }
+
+    /**
+     * Retrieves the first data field at a specified location.
+     * If the data field does not exist, rather than erroring, it will return an NullField with no data.
+     * Shorthand alias for {@link HL7StructureHelper#get(HL7Location) helper().get()} method.
+     * @param loc the HL7Location of the data field
+     * @return the first DataField that matches the descriptor
+     */
+     public DataField get(HL7Location loc) {
+         return helper().get(loc);
+     }
+
+    /**
+     * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
+     * does not exist, rather than erroring, it will return an empty list.
+     * Shorthand alias for {@link HL7StructureHelper#getAll(String) helper().getAll()} method.
+     * @param descriptor String description of location
+     * @return all DataField object that match the descriptor, or an empty list if none do
+     */
+    public List<DataField> getAll(String descriptor) {
+        return helper().getAll(descriptor);
+    }
+
+    /**
+     * Retrieves the all data fields matching a specified location, left to right, top to bottom. If the data field
+     * does not exist, rather than erroring, it will return an empty list.
+     * Shorthand alias for {@link HL7StructureHelper#getAll(String) helper().getAll()} method.
+     * @param loc the HL7Location of the data field
+     * @return all DataField object that match the location, or an empty list if none do
+     */
+    public List<DataField> getAll(HL7Location loc) {
+        return helper().getAll(loc);
+    }
+
+    /**
+     * Determine if this structure has a particular data field or segment.
+     * Shorthand alias for {@link HL7StructureHelper#has(String) helper().has()} method.
+     * @param descriptor string descriptor of the location of the data field or segment
+     * @return if the data field or segment exists
+     */
+     public boolean has(String descriptor) {
+         return helper().has(descriptor);
+     }
+
+    /**
+     * Determine if this structure has a particular data field or segment.
+     * Shorthand alias for {@link HL7StructureHelper#has(HL7Location) helper().has()} method.
+     * @param loc the HL7Location of the data field
+     * @return if the data field or segment exists
+     */
+     public boolean has(HL7Location loc) {
+         return helper().has(loc);
+     }
+
+
+    /**
      * Compress the message by removing fields that are empty at the end of the segments. Does not remove
      * fields that have components.
      */
