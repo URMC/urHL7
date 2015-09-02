@@ -6,6 +6,7 @@
             <class name="org.urhl7.igor.LocationHandlingTest" />
             <class name="org.urhl7.igor.MarshalStringsTest" />
             <class name="org.urhl7.igor.DelimiterTest" />
+            <class name="org.urhl7.igor.HL7StructureHelperNGTest" />
         </classes>
     </test>
 </suite>
