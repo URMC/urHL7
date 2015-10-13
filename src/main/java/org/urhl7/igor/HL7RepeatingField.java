@@ -73,6 +73,16 @@ public class HL7RepeatingField implements GenericStructure, DelimitedStructure {
     }
 
     /**
+     * Adds data as a HL7Field to the end of the underlying data structure. This is a shorthand for
+     * addField(Igor.field(data)).
+     * @param data the data to add
+     * @return the success of the addition
+     */
+    public boolean addField(String data) {
+        return addField(Igor.field(data));
+    }
+    
+    /**
      * Adds an HL7Field to the end of the underlying data structure
      * @param field the field to add
      * @return success of the addition

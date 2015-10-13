@@ -217,6 +217,16 @@ public class HL7FieldComponent implements DataField, DelimitedStructure {
     }
 
     /**
+     * Adds data as a subcomponent to the underlying list data structure for this HL7FieldComponent. 
+     * This is a shorthand for addFieldSubcomponent(Igor.subcomponent(data))
+     * @param data the data to add
+     * @return the success of the addition
+     */
+    public boolean addFieldSubcomponent(String data) {
+        return addFieldSubcomponent(Igor.subcomponent(data));
+    }
+    
+    /**
      * Adds a HL7FieldSubcomponent to the underlying data structure for this HL7FieldComponent
      * @param fieldcomp subcomponent to add
      * @return success of the addition
