@@ -26,6 +26,7 @@ package org.urhl7.spark;
 
 import java.io.*;
 import org.urhl7.igor.Igor;
+import java.util.zip.*;
 
 /**
  * A simple HL7 File reader that will use an event driven model that fires on each parsing of a message in the file.
@@ -148,15 +149,40 @@ public class SparkFileReader {
         this.listener = listener;
     }
 
+    /*
+        Shamelessly taken from http://stackoverflow.com/questions/30507653/how-to-check-whether-file-is-gzip-or-not-in-java
+        Thank you kind internet friend
+    */
+    private static boolean isGZipped(File f) {
+        int magic = 0;
+        try {
+            RandomAccessFile raf = new RandomAccessFile(f, "r");
+            magic = raf.read() & 0xff | ((raf.read() << 8) & 0xff00);
+            raf.close();
+        } catch (Throwable e) { }
+        return magic == GZIPInputStream.GZIP_MAGIC;
+    }
+    
     /**
-     * Begins pasring the messages in the file specified. This may throw an IOException and must be handled. The parse function reads in the file,
+     * Begins parsing the messages in the file specified. This may throw an IOException and must be handled. The parse function reads in the file,
      * when it finds a delimiter will attempt to parse the message. This message is then sent to the listener specified.
      * @return success of the parsing (if any of the messaceReceived(HL7Structure struct) calls return false, this will as well).
      * @throws java.io.IOException
      */
     public boolean parse() throws java.io.IOException {
         boolean success  = true;
-        FileReader fr = new FileReader(inputFile);
+        //FileReader fr = new FileReader(inputFile);
+        
+        Reader fr = null;
+        
+        if( SparkFileReader.isGZipped(inputFile) ){
+            InputStream fileStream = new FileInputStream(inputFile);
+            InputStream gzipStream = new GZIPInputStream(fileStream);
+            Reader decoder = new InputStreamReader(gzipStream);
+            fr = new BufferedReader(decoder);
+        } else {
+            fr = new FileReader(inputFile);
+        }
 
         char[] buf = new char[getInternalBufferSize()];
         StringBuilder sb = new StringBuilder();
