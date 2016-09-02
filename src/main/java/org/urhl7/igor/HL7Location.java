@@ -321,7 +321,7 @@ public class HL7Location {
      */
     public static HL7Location determine(GenericStructure gs) {
         HL7Location loc = new HL7Location();
-        applyLocationInfo(loc, gs);
+        loc = applyLocationInfo(loc, gs);
         return loc;
     }
 
@@ -342,12 +342,20 @@ public class HL7Location {
             loc.fieldIndexInRepeatingField = field.getParent().getFields().indexOf(field);
             loc.repeatingFieldIndexInSegment = field.getParent().getParent().getRepeatingFields().indexOf(field.getParent());
             loc.hasField = true;
+
+            if (field.getParent().getFields().size() != 1) {
+                loc.isFieldIndexImplied = false;
+            } else {
+                loc.isFieldIndexImplied = true;
+            }
+            
             return applyLocationInfo(loc, field.getParent().getParent()); //skip right to segment!
         } else if (gs instanceof HL7RepeatingField) {
             HL7RepeatingField repeatingfield = (HL7RepeatingField)gs;
-            loc.fieldIndexInRepeatingField = repeatingfield.getParent().getRepeatingFields().indexOf(repeatingfield);
-            loc.repeatingFieldIndexInSegment = 0;
-            loc.hasField = true;
+            loc.fieldIndexInRepeatingField = 0;
+            loc.repeatingFieldIndexInSegment = repeatingfield.getParent().getRepeatingFields().indexOf(repeatingfield);
+            loc.hasField = true;    
+            loc.isFieldIndexImplied = true;
             return applyLocationInfo(loc, repeatingfield.getParent());
         } else if (gs instanceof HL7Segment) {
             HL7Segment segment = (HL7Segment)gs;
@@ -362,7 +370,12 @@ public class HL7Location {
                 }
             }
             loc.segmentIndex = specialSegments.indexOf(segment);
-
+            
+            if (specialSegments.size() != 1) {
+                loc.isSegmentIndexImplied = false;
+            } else {
+                loc.isSegmentIndexImplied = true;
+            }
 
             loc.hasSegment = true;
             return loc;
@@ -377,10 +390,10 @@ public class HL7Location {
     public String getFullyQualifiedHL7Location() {
         StringBuffer fqLoc = new StringBuffer();
         if(hasSegment()) {
-            fqLoc.append(getSegmentName() + "[" + getSegmentIndex() + "]");
+            fqLoc.append(getSegmentName()).append("[").append(getSegmentIndex()).append("]");
             if(hasField()) {
                 fqLoc.append("-");
-                fqLoc.append(getRepeatingFieldHL7Position() + "[" + getFieldIndex() + "]");
+                fqLoc.append(getRepeatingFieldHL7Position()).append("[").append(getFieldIndex()).append("]");
                 if(hasComponent()) {
                     fqLoc.append(".");
                     fqLoc.append(getComponentHL7Position());
@@ -403,14 +416,14 @@ public class HL7Location {
         if(hasSegment()) {
             fqLoc.append(getSegmentName());
             if (!isSegmentIndexImplied) {
-                fqLoc.append("[" + getSegmentIndex() + "]");
+                fqLoc.append("[").append(getSegmentIndex()).append("]");
             }
 
             if(hasField()) {
                 fqLoc.append("-");
                 fqLoc.append(getRepeatingFieldHL7Position());
                 if (!isFieldIndexImplied) {
-                    fqLoc.append("[" + getFieldIndex() + "]");
+                    fqLoc.append("[").append(getFieldIndex()).append("]");
                 }
                 if(hasComponent()) {
                     fqLoc.append(".");
@@ -433,16 +446,11 @@ public class HL7Location {
         StringBuffer fqLoc = new StringBuffer();
         if(hasSegment()) {
             fqLoc.append(getSegmentName());
-            //if (!isSegmentIndexImplied) {
-            //    fqLoc.append("[" + getSegmentIndex() + "]");
-            //}
 
             if(hasField()) {
                 fqLoc.append("-");
                 fqLoc.append(getRepeatingFieldHL7Position());
-                //if (!isFieldIndexImplied) {
-                //    fqLoc.append("[" + getFieldIndex() + "]");
-                //}
+
                 if(hasComponent()) {
                     fqLoc.append(".");
                     fqLoc.append(getComponentHL7Position());
